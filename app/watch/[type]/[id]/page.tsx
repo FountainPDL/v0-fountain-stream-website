@@ -3,6 +3,7 @@ import { Star, Calendar, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { VideoPlayer } from "@/components/video-player"
+import { SubtitleSelector } from "@/components/subtitle-selector"
 import { CastSection } from "@/components/cast-section"
 import { RelatedContent } from "@/components/related-content"
 import { CommentsSection } from "@/components/comments-section"
@@ -70,6 +71,15 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           episode={type === "tv" ? currentEpisode : undefined}
           title={title}
           posterPath={details.poster_path}
+          onSubtitleRequest={() => {}}
+        />
+
+        {/* Subtitle Selector */}
+        <SubtitleSelector
+          mediaType={type}
+          tmdbId={tmdbId}
+          season={type === "tv" ? currentSeason : undefined}
+          episode={type === "tv" ? currentEpisode : undefined}
         />
 
         {/* Download Button */}
