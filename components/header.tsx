@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import Link from "next/link"
 import { Search } from "lucide-react"
 import { FountainLogo } from "./fountain-logo"
@@ -8,29 +10,41 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Menu } from "lucide-react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export function Header() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const router = useRouter()
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      setSearchQuery("")
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
-        {/* Logo */}
         <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
           <FountainLogo className="h-12 w-auto" />
         </Link>
 
-        {/* Search Bar */}
-        <div className="flex-1 max-w-xl mx-8 hidden md:block">
+        <form onSubmit={handleSearch} className="flex-1 max-w-xl mx-8 hidden md:block">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search movies, TV shows, anime..."
               className="pl-10 bg-muted/50 border-border/50 focus:border-primary transition-colors"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-        </div>
+        </form>
 
-        {/* Navigation */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
 
@@ -56,13 +70,18 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile Search */}
-      <div className="container px-4 pb-3 md:hidden">
+      <form onSubmit={handleSearch} className="container px-4 pb-3 md:hidden">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input type="search" placeholder="Search..." className="pl-10 bg-muted/50 border-border/50" />
+          <Input
+            type="search"
+            placeholder="Search..."
+            className="pl-10 bg-muted/50 border-border/50"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-      </div>
+      </form>
     </header>
   )
 }

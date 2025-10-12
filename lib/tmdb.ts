@@ -31,23 +31,23 @@ export function getImageUrl(path: string | null, size: "w500" | "w780" | "origin
   return `${TMDB_IMAGE_BASE}/${size}${path}`
 }
 
-export async function getPopular() {
-  const data = await fetchTMDB("/trending/all/week")
+export async function getPopular(page = 1) {
+  const data = await fetchTMDB(`/trending/all/week?page=${page}`)
   return data.results as Movie[]
 }
 
-export async function getMovies() {
-  const data = await fetchTMDB("/movie/popular")
+export async function getMovies(page = 1) {
+  const data = await fetchTMDB(`/movie/popular?page=${page}`)
   return data.results as Movie[]
 }
 
-export async function getTVShows() {
-  const data = await fetchTMDB("/tv/popular")
+export async function getTVShows(page = 1) {
+  const data = await fetchTMDB(`/tv/popular?page=${page}`)
   return data.results as Movie[]
 }
 
-export async function getLatest() {
-  const data = await fetchTMDB("/trending/all/day")
+export async function getLatest(page = 1) {
+  const data = await fetchTMDB(`/trending/all/day?page=${page}`)
   return data.results as Movie[]
 }
 
@@ -56,15 +56,13 @@ export async function searchContent(query: string) {
   return data.results as Movie[]
 }
 
-export async function getAnime() {
-  // Fetch anime using TMDB's anime genre
-  const data = await fetchTMDB("/discover/tv?with_genres=16&with_keywords=210024")
+export async function getAnime(page = 1) {
+  const data = await fetchTMDB(`/discover/tv?with_genres=16&with_keywords=210024&page=${page}`)
   return data.results as Movie[]
 }
 
-export async function getPowerRangers() {
-  // Search for Power Rangers content
-  const data = await fetchTMDB("/search/tv?query=power%20rangers")
+export async function getPowerRangers(page = 1) {
+  const data = await fetchTMDB(`/search/tv?query=power%20rangers&page=${page}`)
   return data.results as Movie[]
 }
 
