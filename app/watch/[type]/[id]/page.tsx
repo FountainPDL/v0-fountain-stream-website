@@ -6,6 +6,7 @@ import { VideoPlayer } from "@/components/video-player"
 import { CastSection } from "@/components/cast-section"
 import { RelatedContent } from "@/components/related-content"
 import { CommentsSection } from "@/components/comments-section"
+import { DownloadButton } from "@/components/download-button"
 import {
   getMovieDetails,
   getTVDetails,
@@ -70,6 +71,18 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           title={title}
           posterPath={details.poster_path}
         />
+
+        {/* Download Button */}
+        <div className="flex justify-center">
+          <DownloadButton
+            mediaType={type}
+            tmdbId={tmdbId}
+            imdbId={details.imdb_id}
+            season={type === "tv" ? currentSeason : undefined}
+            episode={type === "tv" ? currentEpisode : undefined}
+            title={title}
+          />
+        </div>
 
         {/* TV Show Episode Selector */}
         {type === "tv" && seasons.length > 0 && (
