@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Play, Info, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { getImageUrl, type Movie } from "@/lib/tmdb"
+import { getImageUrl, type Movie, getMovieCertification, getTVContentRating } from "@/lib/tmdb"
 
 interface HeroBannerProps {
   movies: Movie[]
@@ -14,6 +14,7 @@ interface HeroBannerProps {
 
 export function HeroBanner({ movies }: HeroBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [certification, setCertification] = useState<string>("")
   const movie = movies[currentIndex]
 
   useEffect(() => {
@@ -24,10 +25,39 @@ export function HeroBanner({ movies }: HeroBannerProps) {
     return () => clearInterval(interval)
   }, [movies.length])
 
+  useEffect(() => {
+    if (!movie) return
+
+    const fetchCert = async () => {
+      const mediaType = movie.media_type || "movie"
+      try {
+        if (mediaType === "movie") {
+          const cert = await getMovieCertification(movie.id)
+          setCertification(cert)
+        } else if (mediaType === "tv") {
+          const cert = await getTVContentRating(movie.id)
+          setCertification(cert)
+        }
+      } catch (error) {
+        console.error("Error fetching certification:", error)
+      }
+    }
+    fetchCert()
+  }, [movie])
+
   if (!movie) return null
 
   const title = movie.title || movie.name || "Untitled"
   const mediaType = movie.media_type || "movie"
+
+  const getCertificationColor = (cert: string) => {
+    const upper = cert.toUpperCase()
+    if (["G", "TV-Y", "TV-G"].includes(upper)) return "bg-green-600"
+    if (["PG", "TV-PG"].includes(upper)) return "bg-blue-600"
+    if (["PG-13", "TV-14"].includes(upper)) return "bg-yellow-600"
+    if (["R", "TV-MA", "NC-17"].includes(upper)) return "bg-red-600"
+    return "bg-gray-600"
+  }
 
   return (
     <div className="relative h-[70vh] w-full overflow-hidden">
@@ -51,6 +81,11 @@ export function HeroBanner({ movies }: HeroBannerProps) {
           <h1 className="text-4xl md:text-6xl font-bold text-foreground text-balance fountain-glow-intense">{title}</h1>
 
           <div className="flex items-center gap-3 flex-wrap">
+            {certification && (
+              <Badge className={`${getCertificationColor(certification)} text-white border-0 font-bold`}>
+                {certification}
+              </Badge>
+            )}
             {movie.vote_average && (
               <Badge variant="secondary" className="text-sm">
                 <Star className="h-4 w-4 mr-1 fill-yellow-400 text-yellow-400" />

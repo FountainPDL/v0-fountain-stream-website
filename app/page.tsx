@@ -4,19 +4,32 @@ import { ContinueWatching } from "@/components/continue-watching"
 import { getPopular, getLatest, getMovies, getTVShows, getAnime, getPowerRangers } from "@/lib/tmdb"
 
 export default async function HomePage() {
-  // Fetch all categories in parallel
-  const [popular, latest, movies, tvShows, anime, powerRangers] = await Promise.all([
-    getPopular(),
-    getLatest(),
-    getMovies(),
-    getTVShows(),
-    getAnime(),
-    getPowerRangers(),
-  ])
+  let popular, latest, movies, tvShows, anime, powerRangers
+
+  try {
+    // Fetch all categories in parallel
+    ;[popular, latest, movies, tvShows, anime, powerRangers] = await Promise.all([
+      getPopular(),
+      getLatest(),
+      getMovies(),
+      getTVShows(),
+      getAnime(),
+      getPowerRangers(),
+    ])
+  } catch (error) {
+    console.error("[v0] Failed to fetch TMDB data:", error)
+    // Provide empty arrays as fallback
+    popular = []
+    latest = []
+    movies = []
+    tvShows = []
+    anime = []
+    powerRangers = []
+  }
 
   return (
     <div className="min-h-screen">
-      <HeroBanner movies={popular.slice(0, 5)} />
+      {popular.length > 0 && <HeroBanner movies={popular.slice(0, 5)} />}
       <div className="container px-4 py-8">
         <ContinueWatching />
       </div>

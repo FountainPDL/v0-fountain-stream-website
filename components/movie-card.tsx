@@ -6,7 +6,8 @@ import { Star, Play } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { getImageUrl, type Movie } from "@/lib/tmdb"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { getMovieCertification, getTVContentRating } from "@/lib/tmdb"
 
 interface MovieCardProps {
   movie: Movie
@@ -14,10 +15,37 @@ interface MovieCardProps {
 
 export function MovieCard({ movie }: MovieCardProps) {
   const [imageError, setImageError] = useState(false)
+  const [certification, setCertification] = useState<string>("")
   const title = movie.title || movie.name || "Untitled"
   const year = movie.release_date?.split("-")[0] || movie.first_air_date?.split("-")[0]
   const rating = movie.vote_average?.toFixed(1)
   const mediaType = movie.media_type || "movie"
+
+  useEffect(() => {
+    const fetchRating = async () => {
+      try {
+        if (mediaType === "movie") {
+          const cert = await getMovieCertification(movie.id)
+          setCertification(cert)
+        } else if (mediaType === "tv") {
+          const cert = await getTVContentRating(movie.id)
+          setCertification(cert)
+        }
+      } catch (error) {
+        console.error("Error fetching certification:", error)
+      }
+    }
+    fetchRating()
+  }, [movie.id, mediaType])
+
+  const getCertificationColor = (cert: string) => {
+    const upper = cert.toUpperCase()
+    if (["G", "TV-Y", "TV-G"].includes(upper)) return "bg-green-600"
+    if (["PG", "TV-PG"].includes(upper)) return "bg-blue-600"
+    if (["PG-13", "TV-14"].includes(upper)) return "bg-yellow-600"
+    if (["R", "TV-MA", "NC-17"].includes(upper)) return "bg-red-600"
+    return "bg-gray-600"
+  }
 
   return (
     <Link href={`/watch/${mediaType}/${movie.id}`}>
@@ -45,6 +73,13 @@ export function MovieCard({ movie }: MovieCardProps) {
               <Badge className="absolute top-2 right-2 bg-black/70 text-white border-0">
                 <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
                 {rating}
+              </Badge>
+            )}
+            {certification && (
+              <Badge
+                className={`absolute top-2 left-2 ${getCertificationColor(certification)} text-white border-0 font-bold`}
+              >
+                {certification}
               </Badge>
             )}
           </div>
