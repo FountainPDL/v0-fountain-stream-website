@@ -94,15 +94,9 @@ export function SubtitleSelector({ mediaType, tmdbId, season, episode }: Subtitl
   }
 
   const handleLoadSubtitle = async (subtitle: Subtitle) => {
-    console.log("[v0] handleLoadSubtitle called for:", subtitle.name)
-    console.log("[v0] Subtitle URL:", subtitle.url)
-    console.log("[v0] Checking window.loadSubtitle:", typeof (window as any).loadSubtitle)
-
     if ((window as any).loadSubtitle) {
-      console.log("[v0] Calling window.loadSubtitle...")
       await (window as any).loadSubtitle(subtitle.url)
     } else {
-      console.error("[v0] window.loadSubtitle not found!")
       alert("Player not ready. Please try again in a moment.")
     }
   }

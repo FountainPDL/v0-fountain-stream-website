@@ -71,7 +71,6 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           episode={type === "tv" ? currentEpisode : undefined}
           title={title}
           posterPath={details.poster_path}
-          onSubtitleRequest={() => {}}
         />
 
         {/* Subtitle Selector */}

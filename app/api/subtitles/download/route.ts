@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import JSZip from "jszip"
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -16,14 +17,24 @@ export async function GET(request: NextRequest) {
       throw new Error("Failed to download subtitle")
     }
 
-    // Check if it's a zip file
     const contentType = response.headers.get("content-type")
-    if (contentType?.includes("zip")) {
-      // For zip files, we'll need to extract the SRT file
-      // For now, return an error asking user to download manually
-      return NextResponse.json({ error: "Zip files need to be extracted. Please download manually." }, { status: 400 })
+
+    if (contentType?.includes("zip") || url.endsWith(".zip")) {
+      const arrayBuffer = await response.arrayBuffer()
+      const zip = await JSZip.loadAsync(arrayBuffer)
+
+      // Find the first .srt file in the ZIP
+      const srtFile = Object.keys(zip.files).find((filename) => filename.endsWith(".srt"))
+
+      if (!srtFile) {
+        return NextResponse.json({ error: "No .srt file found in ZIP archive" }, { status: 400 })
+      }
+
+      const content = await zip.files[srtFile].async("text")
+      return NextResponse.json({ content })
     }
 
+    // Handle direct .srt files
     const content = await response.text()
     return NextResponse.json({ content })
   } catch (error) {
