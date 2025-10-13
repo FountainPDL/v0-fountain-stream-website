@@ -15,6 +15,7 @@ export function SettingsForm() {
     defaultServer: "vidsrc",
     autoplay: true,
     theme: "system",
+    filterAdultContent: false, // Added default value
   })
   const [saved, setSaved] = useState(false)
 
@@ -80,6 +81,18 @@ export function SettingsForm() {
           id="autoplay"
           checked={preferences.autoplay}
           onCheckedChange={(checked) => setPreferences({ ...preferences, autoplay: checked })}
+        />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <Label htmlFor="adult-filter">Filter Adult Content</Label>
+          <p className="text-sm text-muted-foreground">Hide R-rated, NC-17, and TV-MA content</p>
+        </div>
+        <Switch
+          id="adult-filter"
+          checked={preferences.filterAdultContent}
+          onCheckedChange={(checked) => setPreferences({ ...preferences, filterAdultContent: checked })}
         />
       </div>
 

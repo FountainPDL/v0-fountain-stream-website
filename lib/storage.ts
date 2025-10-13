@@ -25,6 +25,7 @@ export interface UserPreferences {
   defaultServer: string
   autoplay: boolean
   theme: "light" | "dark" | "system"
+  filterAdultContent: boolean // Added adult content filter
 }
 
 // Watch History
@@ -106,10 +107,12 @@ export function getAverageRating(contentId: string, contentType: "movie" | "tv")
 // User Preferences
 export function getUserPreferences(): UserPreferences {
   if (typeof window === "undefined") {
-    return { defaultServer: "vidsrc", autoplay: true, theme: "system" }
+    return { defaultServer: "vidsrc", autoplay: true, theme: "system", filterAdultContent: false }
   }
   const prefs = localStorage.getItem("fountainhome_preferences")
-  return prefs ? JSON.parse(prefs) : { defaultServer: "vidsrc", autoplay: true, theme: "system" }
+  return prefs
+    ? JSON.parse(prefs)
+    : { defaultServer: "vidsrc", autoplay: true, theme: "system", filterAdultContent: false }
 }
 
 export function updateUserPreferences(prefs: Partial<UserPreferences>) {
