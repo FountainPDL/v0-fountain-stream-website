@@ -1,7 +1,6 @@
 "use client"
 
 import { MovieCard } from "./movie-card"
-import { ContentFilter } from "./content-filter"
 import type { Movie } from "@/lib/tmdb"
 import { useEffect, useRef, useState } from "react"
 import { Loader2 } from "lucide-react"
@@ -52,15 +51,11 @@ export function CategorySection({ title, movies: initialMovies, loadMore }: Cate
   return (
     <section className="py-8">
       <h2 className="text-2xl md:text-3xl font-bold mb-6 text-foreground text-balance">{title}</h2>
-      <ContentFilter movies={movies}>
-        {(filteredMovies) => (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {filteredMovies.map((movie, index) => (
-              <MovieCard key={`${movie.id}-${movie.media_type}-${index}`} movie={movie} />
-            ))}
-          </div>
-        )}
-      </ContentFilter>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        {movies.map((movie, index) => (
+          <MovieCard key={`${movie.id}-${movie.media_type}-${index}`} movie={movie} />
+        ))}
+      </div>
 
       {loadMore && hasMore && (
         <div ref={observerRef} className="flex justify-center py-8">
