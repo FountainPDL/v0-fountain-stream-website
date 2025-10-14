@@ -21,25 +21,15 @@ export interface Movie {
 export async function fetchTMDB(endpoint: string) {
   const url = `${TMDB_BASE_URL}${endpoint}${endpoint.includes("?") ? "&" : "?"}api_key=${TMDB_API_KEY}`
 
-  try {
-    console.log("[v0] Fetching TMDB:", url.replace(TMDB_API_KEY, "***"))
-    const response = await fetch(url, {
-      next: { revalidate: 3600 },
-      cache: "force-cache",
-    })
+  const response = await fetch(url, {
+    next: { revalidate: 3600 },
+  })
 
-    if (!response.ok) {
-      console.error("[v0] TMDB API error:", response.status, response.statusText)
-      throw new Error(`TMDB API error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    console.log("[v0] TMDB fetch successful")
-    return data
-  } catch (error) {
-    console.error("[v0] TMDB fetch failed:", error)
-    throw error
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status} ${response.statusText}`)
   }
+
+  return await response.json()
 }
 
 export function getImageUrl(path: string | null, size: "w500" | "w780" | "original" = "w500") {
@@ -52,7 +42,6 @@ export async function getPopular(page = 1) {
     const data = await fetchTMDB(`/trending/all/week?page=${page}`)
     return data.results as Movie[]
   } catch (error) {
-    console.error("[v0] getPopular failed:", error)
     return []
   }
 }
@@ -62,7 +51,6 @@ export async function getMovies(page = 1) {
     const data = await fetchTMDB(`/movie/popular?page=${page}`)
     return data.results as Movie[]
   } catch (error) {
-    console.error("[v0] getMovies failed:", error)
     return []
   }
 }
@@ -72,7 +60,6 @@ export async function getTVShows(page = 1) {
     const data = await fetchTMDB(`/tv/popular?page=${page}`)
     return data.results as Movie[]
   } catch (error) {
-    console.error("[v0] getTVShows failed:", error)
     return []
   }
 }
@@ -82,7 +69,6 @@ export async function getLatest(page = 1) {
     const data = await fetchTMDB(`/trending/all/day?page=${page}`)
     return data.results as Movie[]
   } catch (error) {
-    console.error("[v0] getLatest failed:", error)
     return []
   }
 }
@@ -92,7 +78,6 @@ export async function searchContent(query: string) {
     const data = await fetchTMDB(`/search/multi?query=${encodeURIComponent(query)}`)
     return data.results as Movie[]
   } catch (error) {
-    console.error("[v0] searchContent failed:", error)
     return []
   }
 }
@@ -102,7 +87,6 @@ export async function getAnime(page = 1) {
     const data = await fetchTMDB(`/discover/tv?with_genres=16&with_keywords=210024&page=${page}`)
     return data.results as Movie[]
   } catch (error) {
-    console.error("[v0] getAnime failed:", error)
     return []
   }
 }
@@ -112,7 +96,6 @@ export async function getPowerRangers(page = 1) {
     const data = await fetchTMDB(`/search/tv?query=power%20rangers&page=${page}`)
     return data.results as Movie[]
   } catch (error) {
-    console.error("[v0] getPowerRangers failed:", error)
     return []
   }
 }
@@ -159,8 +142,8 @@ export async function getMovieCertification(id: number): Promise<string> {
     if (usRelease?.release_dates?.[0]?.certification) {
       return usRelease.release_dates[0].certification
     }
-  } catch (error) {
-    console.error("Error fetching movie certification:", error)
+  } catch (error: any) {
+    return ""
   }
   return ""
 }
@@ -172,8 +155,8 @@ export async function getTVContentRating(id: number): Promise<string> {
     if (usRating?.rating) {
       return usRating.rating
     }
-  } catch (error) {
-    console.error("Error fetching TV content rating:", error)
+  } catch (error: any) {
+    return ""
   }
   return ""
 }

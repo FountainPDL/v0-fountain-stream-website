@@ -30,16 +30,12 @@ export function HeroBanner({ movies }: HeroBannerProps) {
 
     const fetchCert = async () => {
       const mediaType = movie.media_type || "movie"
-      try {
-        if (mediaType === "movie") {
-          const cert = await getMovieCertification(movie.id)
-          setCertification(cert)
-        } else if (mediaType === "tv") {
-          const cert = await getTVContentRating(movie.id)
-          setCertification(cert)
-        }
-      } catch (error) {
-        console.error("Error fetching certification:", error)
+      if (mediaType === "movie") {
+        const cert = await getMovieCertification(movie.id)
+        setCertification(cert)
+      } else if (mediaType === "tv") {
+        const cert = await getTVContentRating(movie.id)
+        setCertification(cert)
       }
     }
     fetchCert()

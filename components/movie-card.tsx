@@ -32,7 +32,7 @@ export function MovieCard({ movie }: MovieCardProps) {
           setCertification(cert)
         }
       } catch (error) {
-        console.error("Error fetching certification:", error)
+        setCertification("")
       }
     }
     fetchRating()
@@ -59,7 +59,6 @@ export function MovieCard({ movie }: MovieCardProps) {
               className="object-cover transition-transform duration-300 group-hover:scale-110"
               onError={() => setImageError(true)}
             />
-            {/* Overlay on hover */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <div className="flex items-center justify-center gap-2 text-white">
@@ -68,7 +67,6 @@ export function MovieCard({ movie }: MovieCardProps) {
                 </div>
               </div>
             </div>
-            {/* Rating badge */}
             {rating && (
               <Badge className="absolute top-2 right-2 bg-black/70 text-white border-0">
                 <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
