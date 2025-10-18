@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Header } from "@/components/header"
 import { Suspense } from "react"
+import { AdBlocker } from "@/components/ad-blocker"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+        <AdBlocker />
         <Suspense fallback={<div>Loading...</div>}>
           <Header />
         </Suspense>

@@ -135,30 +135,54 @@ export async function getTVSeasons(id: number) {
   return data.seasons || []
 }
 
+const certificationCache = new Map<string, { data: string; timestamp: number }>()
+
 export async function getMovieCertification(id: number): Promise<string> {
+  const cacheKey = `movie-${id}`
+  const cached = certificationCache.get(cacheKey)
+
+  // Return cached result if available and less than 24 hours old
+  if (cached && Date.now() - cached.timestamp < 86400000) {
+    return cached.data
+  }
+
   try {
     const data = await fetchTMDB(`/movie/${id}/release_dates`)
     const usRelease = data.results?.find((r: any) => r.iso_3166_1 === "US")
-    if (usRelease?.release_dates?.[0]?.certification) {
-      return usRelease.release_dates[0].certification
-    }
+    const cert = usRelease?.release_dates?.[0]?.certification || ""
+
+    // Cache the result
+    certificationCache.set(cacheKey, { data: cert, timestamp: Date.now() })
+    return cert
   } catch (error: any) {
+    // Cache empty result to avoid repeated failed requests
+    certificationCache.set(cacheKey, { data: "", timestamp: Date.now() })
     return ""
   }
-  return ""
 }
 
 export async function getTVContentRating(id: number): Promise<string> {
+  const cacheKey = `tv-${id}`
+  const cached = certificationCache.get(cacheKey)
+
+  // Return cached result if available and less than 24 hours old
+  if (cached && Date.now() - cached.timestamp < 86400000) {
+    return cached.data
+  }
+
   try {
     const data = await fetchTMDB(`/tv/${id}/content_ratings`)
     const usRating = data.results?.find((r: any) => r.iso_3166_1 === "US")
-    if (usRating?.rating) {
-      return usRating.rating
-    }
+    const rating = usRating?.rating || ""
+
+    // Cache the result
+    certificationCache.set(cacheKey, { data: rating, timestamp: Date.now() })
+    return rating
   } catch (error: any) {
+    // Cache empty result to avoid repeated failed requests
+    certificationCache.set(cacheKey, { data: "", timestamp: Date.now() })
     return ""
   }
-  return ""
 }
 
 export function isAdultContent(movie: Movie, certification?: string): boolean {

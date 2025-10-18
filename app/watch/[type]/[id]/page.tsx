@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import { Star, Calendar, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { VideoPlayer } from "@/components/video-player"
+import { EnhancedPlayer } from "@/components/enhanced-player"
 import { SubtitleSelector } from "@/components/subtitle-selector"
 import { CastSection } from "@/components/cast-section"
 import { RelatedContent } from "@/components/related-content"
@@ -42,11 +42,20 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
   }
 
   // Fetch data in parallel
-  const [details, credits, similar] = await Promise.all([
-    type === "movie" ? getMovieDetails(tmdbId) : getTVDetails(tmdbId),
-    type === "movie" ? getMovieCredits(tmdbId) : getTVCredits(tmdbId),
-    type === "movie" ? getSimilarMovies(tmdbId) : getSimilarTV(tmdbId),
-  ])
+  let details, credits, similar
+  try {
+    const results = await Promise.all([
+      type === "movie" ? getMovieDetails(tmdbId) : getTVDetails(tmdbId),
+      type === "movie" ? getMovieCredits(tmdbId) : getTVCredits(tmdbId),
+      type === "movie" ? getSimilarMovies(tmdbId) : getSimilarTV(tmdbId),
+    ])
+    details = results[0]
+    credits = results[1]
+    similar = results[2]
+  } catch (error) {
+    // If the movie/TV show doesn't exist or any fetch fails, show 404 page
+    notFound()
+  }
 
   const title = details.title || details.name
   const releaseDate = details.release_date || details.first_air_date
@@ -59,18 +68,42 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
   const currentSeason = season ? Number.parseInt(season) : 1
   const currentEpisode = episode ? Number.parseInt(episode) : 1
 
+  const currentSeasonData = seasons.find((s: any) => s.season_number === currentSeason)
+  const hasNextEpisode = currentEpisode < (currentSeasonData?.episode_count || 0)
+  const hasPreviousEpisode = currentEpisode > 1 || currentSeason > 1
+
   return (
     <div className="min-h-screen">
       <div className="container px-4 py-8 space-y-8">
-        {/* Video Player */}
-        <VideoPlayer
-          mediaType={type}
-          tmdbId={tmdbId}
-          imdbId={details.imdb_id}
-          season={type === "tv" ? currentSeason : undefined}
-          episode={type === "tv" ? currentEpisode : undefined}
+        <EnhancedPlayer
+          sources={[
+            { url: `https://vidsrc.to/embed/movie/${details.imdb_id}`, type: "text/html", label: "VidSrc" },
+            { url: `https://2embed.cc/embed/${details.imdb_id}`, type: "text/html", label: "2Embed" },
+            { url: `https://autoembed.cc/embed/imdb/${details.imdb_id}`, type: "text/html", label: "AutoEmbed" },
+          ]}
           title={title}
           posterPath={details.poster_path}
+          mediaType={type}
+          tmdbId={tmdbId}
+          season={type === "tv" ? currentSeason : undefined}
+          episode={type === "tv" ? currentEpisode : undefined}
+          onNextEpisode={() => {
+            if (hasNextEpisode) {
+              window.location.href = `/watch/tv/${tmdbId}?season=${currentSeason}&episode=${currentEpisode + 1}`
+            }
+          }}
+          onPreviousEpisode={() => {
+            if (currentEpisode > 1) {
+              window.location.href = `/watch/tv/${tmdbId}?season=${currentSeason}&episode=${currentEpisode - 1}`
+            } else if (currentSeason > 1) {
+              const prevSeason = seasons.find((s: any) => s.season_number === currentSeason - 1)
+              if (prevSeason) {
+                window.location.href = `/watch/tv/${tmdbId}?season=${currentSeason - 1}&episode=${prevSeason.episode_count}`
+              }
+            }
+          }}
+          hasNextEpisode={hasNextEpisode}
+          hasPreviousEpisode={hasPreviousEpisode}
         />
 
         {/* Subtitle Selector */}

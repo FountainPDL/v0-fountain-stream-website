@@ -34,6 +34,7 @@ export function VideoPlayer({ mediaType, tmdbId, imdbId, season, episode, title,
   const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const videoContainerRef = useRef<HTMLDivElement>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [useCustomPlayer, setUseCustomPlayer] = useState(false)
 
   useEffect(() => {
     const prefs = getUserPreferences()
@@ -165,26 +166,21 @@ export function VideoPlayer({ mediaType, tmdbId, imdbId, season, episode, title,
 
   const loadSubtitleFile = async (subtitleUrl: string) => {
     try {
-      console.log("[v0] Loading subtitle from:", subtitleUrl)
       const fullUrl = `/api/subtitles/download?url=${encodeURIComponent(subtitleUrl)}`
       const response = await fetch(fullUrl)
       const data = await response.json()
 
       if (data.content) {
         const cues = parseSRT(data.content)
-        console.log("[v0] Parsed cues:", cues.length)
         setSubtitleCues(cues)
         setSubtitlesEnabled(true)
         setCurrentTime(0)
         setSubtitleOffset(0)
         setIsPlaying(true)
-        console.log("[v0] Subtitle loaded and playback started automatically")
       } else if (data.error) {
-        console.error("[v0] Subtitle error:", data.error)
         alert(data.error)
       }
     } catch (error) {
-      console.error("[v0] Error loading subtitle:", error)
       alert("Failed to load subtitle file")
     }
   }
@@ -209,11 +205,9 @@ export function VideoPlayer({ mediaType, tmdbId, imdbId, season, episode, title,
   useEffect(() => {
     const handleFullscreenChange = () => {
       const isNowFullscreen = !!document.fullscreenElement
-      console.log("[v0] Fullscreen changed:", isNowFullscreen, "Element:", document.fullscreenElement)
       setIsFullscreen(isNowFullscreen)
     }
 
-    // Listen to multiple fullscreen events for better compatibility
     document.addEventListener("fullscreenchange", handleFullscreenChange)
     document.addEventListener("webkitfullscreenchange", handleFullscreenChange)
     document.addEventListener("mozfullscreenchange", handleFullscreenChange)
@@ -240,21 +234,27 @@ export function VideoPlayer({ mediaType, tmdbId, imdbId, season, episode, title,
             </div>
           )}
 
-          <iframe
-            ref={iframeRef}
-            key={activeSource}
-            src={getEmbedUrl(activeSource)}
-            className="absolute inset-0 h-full w-full"
-            allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            title="Video Player"
-            onError={handleServerError}
-            onLoad={() => {
-              if (loadTimeoutRef.current) {
-                clearTimeout(loadTimeoutRef.current)
-              }
-            }}
-          />
+          {useCustomPlayer ? (
+            <div className="absolute inset-0 h-full w-full bg-black/80 flex items-center justify-center text-white">
+              Custom Player Placeholder
+            </div>
+          ) : (
+            <iframe
+              ref={iframeRef}
+              key={activeSource}
+              src={getEmbedUrl(activeSource)}
+              className="absolute inset-0 h-full w-full"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              title="Video Player"
+              onError={handleServerError}
+              onLoad={() => {
+                if (loadTimeoutRef.current) {
+                  clearTimeout(loadTimeoutRef.current)
+                }
+              }}
+            />
+          )}
 
           <SubtitleOverlay
             cues={subtitleCues}
@@ -365,6 +365,21 @@ export function VideoPlayer({ mediaType, tmdbId, imdbId, season, episode, title,
                 {source.name}
               </Badge>
             ))}
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Use Custom Player:</span>
+                <Button
+                  size="sm"
+                  variant={useCustomPlayer ? "default" : "outline"}
+                  onClick={() => setUseCustomPlayer(!useCustomPlayer)}
+                >
+                  {useCustomPlayer ? "Yes" : "No"}
+                </Button>
+              </div>
+            </div>
           </div>
 
           {subtitleCues.length > 0 && (

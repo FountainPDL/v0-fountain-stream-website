@@ -24,18 +24,22 @@ export function MovieCard({ movie }: MovieCardProps) {
   useEffect(() => {
     const fetchRating = async () => {
       try {
+        let cert = ""
         if (mediaType === "movie") {
-          const cert = await getMovieCertification(movie.id)
-          setCertification(cert)
+          cert = await getMovieCertification(movie.id)
         } else if (mediaType === "tv") {
-          const cert = await getTVContentRating(movie.id)
-          setCertification(cert)
+          cert = await getTVContentRating(movie.id)
         }
+        setCertification(cert || "")
       } catch (error) {
+        // Silently fail - certification is optional
         setCertification("")
       }
     }
-    fetchRating()
+
+    // Add small delay to avoid rate limiting
+    const timer = setTimeout(fetchRating, Math.random() * 500)
+    return () => clearTimeout(timer)
   }, [movie.id, mediaType])
 
   const getCertificationColor = (cert: string) => {
