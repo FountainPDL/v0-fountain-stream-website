@@ -2,8 +2,8 @@ export function FountainLogo({ className = "" }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="240"
-      height="100"
+      width="320"
+      height="140"
       viewBox="0 0 800 200"
       role="img"
       aria-label="FountainHome logo"
@@ -46,10 +46,10 @@ export function FountainLogo({ className = "" }: { className?: string }) {
           strokeLinecap="round"
           opacity="0.95"
         />
-        {/* Central droplet */}
-        <path d="M60 28 C56 34,54 40,60 48 C66 40,64 34,60 28 Z" fill="url(#grad1)" filter="url(#glow)" />
+        {/* Central droplet - Made home icon 20% bigger */}
+        <path d="M60 24 C54 32,52 42,60 52 C68 42,66 32,60 24 Z" fill="url(#grad1)" filter="url(#glow)" />
         {/* Subtle inner highlight */}
-        <path d="M60 30 C58 34,58 38,60 44 C62 38,62 34,60 30 Z" fill="#FFFFFF" opacity="0.12" />
+        <path d="M60 28 C57 34,57 40,60 48 C63 40,63 34,60 28 Z" fill="#FFFFFF" opacity="0.12" />
       </g>
       {/* Wordmark */}
       <g transform="translate(180,120)">

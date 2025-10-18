@@ -31,10 +31,10 @@ interface EnhancedPlayerProps {
   tmdbId?: number
   season?: number
   episode?: number
-  onNextEpisode?: () => void
-  onPreviousEpisode?: () => void
   hasNextEpisode?: boolean
   hasPreviousEpisode?: boolean
+  nextEpisodeUrl?: string
+  previousEpisodeUrl?: string
 }
 
 export function EnhancedPlayer({
@@ -45,10 +45,10 @@ export function EnhancedPlayer({
   tmdbId,
   season,
   episode,
-  onNextEpisode,
-  onPreviousEpisode,
   hasNextEpisode,
   hasPreviousEpisode,
+  nextEpisodeUrl,
+  previousEpisodeUrl,
 }: EnhancedPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -306,12 +306,12 @@ export function EnhancedPlayer({
             {/* Controls Overlay - only show for non-iframe sources */}
             {!isIframeSource && (
               <div
-                className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-opacity duration-300 flex flex-col justify-end p-4 ${
+                className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-opacity duration-300 flex flex-col justify-end p-2 sm:p-4 ${
                   showControls ? "opacity-100" : "opacity-0"
                 }`}
               >
                 {/* Progress Bar */}
-                <div className="mb-4">
+                <div className="mb-2 sm:mb-4">
                   <Slider
                     value={[currentTime]}
                     onValueChange={([value]) => handleTimeChange(value)}
@@ -321,211 +321,217 @@ export function EnhancedPlayer({
                   />
                 </div>
 
-                {/* Control Buttons */}
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-1 flex-wrap">
-                    {/* Play/Pause */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handlePlayPause}
-                      className="text-white hover:bg-white/20"
-                      title="Space"
-                    >
-                      {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                    </Button>
-
-                    {/* Skip Buttons */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleSkip(-5)}
-                      className="text-white hover:bg-white/20"
-                      title="Left Arrow"
-                    >
-                      <SkipBack className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleSkip(5)}
-                      className="text-white hover:bg-white/20"
-                      title="Right Arrow"
-                    >
-                      <SkipForward className="h-4 w-4" />
-                    </Button>
-
-                    {/* Volume */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleMute}
-                      className="text-white hover:bg-white/20"
-                      title="M"
-                    >
-                      {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                    </Button>
-                    <Slider
-                      value={[isMuted ? 0 : volume]}
-                      onValueChange={([value]) => handleVolumeChange(value)}
-                      max={1}
-                      step={0.1}
-                      className="w-20"
-                    />
-
-                    {/* Time Display */}
-                    <span className="text-sm text-white ml-2 min-w-fit">
-                      {formatTime(currentTime)} / {formatTime(duration)}
-                    </span>
-
-                    {/* Episode Navigation */}
-                    {mediaType === "tv" && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={onPreviousEpisode}
-                          disabled={!hasPreviousEpisode}
-                          className="text-white hover:bg-white/20 disabled:opacity-50"
-                          title="Previous Episode"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <span className="text-sm text-white">
-                          S{season}E{episode}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={onNextEpisode}
-                          disabled={!hasNextEpisode}
-                          className="text-white hover:bg-white/20 disabled:opacity-50"
-                          title="Next Episode"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1 flex-wrap">
-                    {/* Subtitles */}
-                    <Button
-                      size="sm"
-                      variant={subtitlesEnabled ? "default" : "ghost"}
-                      onClick={() => setSubtitlesEnabled(!subtitlesEnabled)}
-                      className={subtitlesEnabled ? "" : "text-white hover:bg-white/20"}
-                      title="C"
-                    >
-                      <Subtitles className="h-4 w-4" />
-                    </Button>
-
-                    {/* Speed */}
-                    <div className="relative group">
-                      <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
-                        {playbackSpeed}x
+                {/* Control Buttons - Mobile optimized */}
+                <div className="flex flex-col gap-2 sm:gap-0">
+                  <div className="flex items-center justify-between gap-1 sm:gap-2 flex-wrap">
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {/* Play/Pause */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handlePlayPause}
+                        className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0"
+                        title="Space"
+                      >
+                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                       </Button>
-                      <div className="absolute right-0 bottom-full mb-2 hidden group-hover:flex flex-col bg-black/90 rounded-lg p-2 gap-1 z-50">
-                        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+
+                      {/* Skip Buttons */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleSkip(-5)}
+                        className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0"
+                        title="Left Arrow"
+                      >
+                        <SkipBack className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleSkip(5)}
+                        className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0"
+                        title="Right Arrow"
+                      >
+                        <SkipForward className="h-4 w-4" />
+                      </Button>
+
+                      {/* Volume */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleMute}
+                        className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0"
+                        title="M"
+                      >
+                        {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                      </Button>
+                      <Slider
+                        value={[isMuted ? 0 : volume]}
+                        onValueChange={([value]) => handleVolumeChange(value)}
+                        max={1}
+                        step={0.1}
+                        className="w-16 sm:w-20 hidden sm:block"
+                      />
+
+                      {/* Time Display */}
+                      <span className="text-xs sm:text-sm text-white ml-1 sm:ml-2 min-w-fit">
+                        {formatTime(currentTime)} / {formatTime(duration)}
+                      </span>
+
+                      {/* Episode Navigation */}
+                      {mediaType === "tv" && (
+                        <>
                           <Button
-                            key={speed}
                             size="sm"
-                            variant={playbackSpeed === speed ? "default" : "ghost"}
-                            onClick={() => handleSpeedChange(speed)}
-                            className="text-white hover:bg-white/20 w-12"
+                            variant="ghost"
+                            onClick={() => previousEpisodeUrl && (window.location.href = previousEpisodeUrl)}
+                            disabled={!hasPreviousEpisode}
+                            className="text-white hover:bg-white/20 disabled:opacity-50 h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            title="Previous Episode"
                           >
-                            {speed}x
+                            <ChevronLeft className="h-4 w-4" />
                           </Button>
-                        ))}
-                      </div>
+                          <span className="text-xs sm:text-sm text-white">
+                            S{season}E{episode}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => nextEpisodeUrl && (window.location.href = nextEpisodeUrl)}
+                            disabled={!hasNextEpisode}
+                            className="text-white hover:bg-white/20 disabled:opacity-50 h-8 w-8 sm:h-9 sm:w-9 p-0"
+                            title="Next Episode"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
 
-                    {/* Screenshot */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleScreenshot}
-                      className="text-white hover:bg-white/20"
-                      title="Take Screenshot"
-                    >
-                      <Camera className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {/* Subtitles */}
+                      <Button
+                        size="sm"
+                        variant={subtitlesEnabled ? "default" : "ghost"}
+                        onClick={() => setSubtitlesEnabled(!subtitlesEnabled)}
+                        className={`h-8 w-8 sm:h-9 sm:w-9 p-0 ${subtitlesEnabled ? "" : "text-white hover:bg-white/20"}`}
+                        title="C"
+                      >
+                        <Subtitles className="h-4 w-4" />
+                      </Button>
 
-                    {/* Download */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleDownload}
-                      className="text-white hover:bg-white/20"
-                      title="Download"
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
+                      {/* Speed */}
+                      <div className="relative group">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-white hover:bg-white/20 text-xs sm:text-sm h-8 sm:h-9"
+                        >
+                          {playbackSpeed}x
+                        </Button>
+                        <div className="absolute right-0 bottom-full mb-2 hidden group-hover:flex flex-col bg-black/90 rounded-lg p-2 gap-1 z-50">
+                          {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                            <Button
+                              key={speed}
+                              size="sm"
+                              variant={playbackSpeed === speed ? "default" : "ghost"}
+                              onClick={() => handleSpeedChange(speed)}
+                              className="text-white hover:bg-white/20 w-12 text-xs"
+                            >
+                              {speed}x
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
 
-                    {/* Picture in Picture */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handlePictureInPicture}
-                      className="text-white hover:bg-white/20"
-                      title="P"
-                    >
-                      <PictureInPicture2 className="h-4 w-4" />
-                    </Button>
+                      {/* Screenshot */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleScreenshot}
+                        className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0 hidden sm:flex"
+                        title="Take Screenshot"
+                      >
+                        <Camera className="h-4 w-4" />
+                      </Button>
 
-                    {/* Fullscreen */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={handleFullscreen}
-                      className="text-white hover:bg-white/20"
-                      title="F"
-                    >
-                      {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-                    </Button>
+                      {/* Download */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleDownload}
+                        className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0 hidden sm:flex"
+                        title="Download"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+
+                      {/* Picture in Picture */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handlePictureInPicture}
+                        className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0 hidden sm:flex"
+                        title="P"
+                      >
+                        <PictureInPicture2 className="h-4 w-4" />
+                      </Button>
+
+                      {/* Fullscreen */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleFullscreen}
+                        className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0"
+                        title="F"
+                      >
+                        {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </div>
+
+                  {/* Subtitle Offset Controls */}
+                  {subtitles.length > 0 && subtitlesEnabled && (
+                    <div className="mt-2 flex items-center gap-1 text-xs sm:text-sm text-white flex-wrap">
+                      <span>Offset:</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSubtitleOffset(Math.max(-5, subtitleOffset - 0.5))}
+                        className="text-white hover:bg-white/20 h-7 px-2 text-xs"
+                      >
+                        -0.5s
+                      </Button>
+                      <span className="min-w-fit text-xs">{subtitleOffset.toFixed(1)}s</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSubtitleOffset(Math.min(5, subtitleOffset + 0.5))}
+                        className="text-white hover:bg-white/20 h-7 px-2 text-xs"
+                      >
+                        +0.5s
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSubtitleOffset(0)}
+                        className="text-white hover:bg-white/20 h-7 px-2 text-xs"
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                  )}
                 </div>
-
-                {/* Subtitle Offset Controls */}
-                {subtitles.length > 0 && subtitlesEnabled && (
-                  <div className="mt-3 flex items-center gap-2 text-sm text-white">
-                    <span>Subtitle Offset:</span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setSubtitleOffset(Math.max(-5, subtitleOffset - 0.5))}
-                      className="text-white hover:bg-white/20"
-                    >
-                      -0.5s
-                    </Button>
-                    <span className="min-w-fit">{subtitleOffset.toFixed(1)}s</span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setSubtitleOffset(Math.min(5, subtitleOffset + 0.5))}
-                      className="text-white hover:bg-white/20"
-                    >
-                      +0.5s
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setSubtitleOffset(0)}
-                      className="text-white hover:bg-white/20"
-                    >
-                      Reset
-                    </Button>
-                  </div>
-                )}
               </div>
             )}
           </div>
 
-          {/* Source Selector */}
+          {/* Source Selector - Mobile optimized */}
           {sources.length > 1 && (
-            <div className="p-4 border-t border-border/50">
-              <p className="text-sm font-medium mb-2">Select Source:</p>
-              <div className="flex flex-wrap gap-2">
+            <div className="p-2 sm:p-4 border-t border-border/50">
+              <p className="text-xs sm:text-sm font-medium mb-2">Select Source:</p>
+              <div className="flex flex-wrap gap-1 sm:gap-2">
                 {sources.map((source, index) => (
                   <Button
                     key={index}
@@ -537,6 +543,7 @@ export function EnhancedPlayer({
                         videoRef.current.currentTime = currentTime
                       }
                     }}
+                    className="text-xs sm:text-sm h-8 sm:h-9"
                   >
                     {source.label}
                   </Button>

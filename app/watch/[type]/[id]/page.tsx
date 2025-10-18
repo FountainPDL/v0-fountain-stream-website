@@ -87,23 +87,23 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           tmdbId={tmdbId}
           season={type === "tv" ? currentSeason : undefined}
           episode={type === "tv" ? currentEpisode : undefined}
-          onNextEpisode={() => {
-            if (hasNextEpisode) {
-              window.location.href = `/watch/tv/${tmdbId}?season=${currentSeason}&episode=${currentEpisode + 1}`
-            }
-          }}
-          onPreviousEpisode={() => {
-            if (currentEpisode > 1) {
-              window.location.href = `/watch/tv/${tmdbId}?season=${currentSeason}&episode=${currentEpisode - 1}`
-            } else if (currentSeason > 1) {
-              const prevSeason = seasons.find((s: any) => s.season_number === currentSeason - 1)
-              if (prevSeason) {
-                window.location.href = `/watch/tv/${tmdbId}?season=${currentSeason - 1}&episode=${prevSeason.episode_count}`
-              }
-            }
-          }}
           hasNextEpisode={hasNextEpisode}
           hasPreviousEpisode={hasPreviousEpisode}
+          nextEpisodeUrl={
+            hasNextEpisode ? `/watch/tv/${tmdbId}?season=${currentSeason}&episode=${currentEpisode + 1}` : undefined
+          }
+          previousEpisodeUrl={
+            currentEpisode > 1
+              ? `/watch/tv/${tmdbId}?season=${currentSeason}&episode=${currentEpisode - 1}`
+              : currentSeason > 1
+                ? (() => {
+                    const prevSeason = seasons.find((s: any) => s.season_number === currentSeason - 1)
+                    return prevSeason
+                      ? `/watch/tv/${tmdbId}?season=${currentSeason - 1}&episode=${prevSeason.episode_count}`
+                      : undefined
+                  })()
+                : undefined
+          }
         />
 
         {/* Subtitle Selector */}
