@@ -26,10 +26,10 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 sm:h-20 items-center justify-between px-2 sm:px-4">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-in fade-in slide-in-from-top-2 duration-500">
+      <div className="container flex h-16 sm:h-24 items-center justify-between px-2 sm:px-4">
         <Link href="/" className="flex items-center transition-opacity hover:opacity-80 flex-shrink-0">
-          <FountainLogo className="h-10 sm:h-14 w-auto" />
+          <FountainLogo className="h-12 sm:h-16 w-auto" />
         </Link>
 
         <form onSubmit={handleSearch} className="flex-1 max-w-xl mx-2 sm:mx-8 hidden md:block">

@@ -5,7 +5,6 @@ import { useEffect } from "react"
 export function AdBlocker() {
   useEffect(() => {
     const blockAds = () => {
-      // Block ad-related domains
       const adDomains = [
         "doubleclick.net",
         "googlesyndication.com",
@@ -20,6 +19,12 @@ export function AdBlocker() {
         "platform.twitter.com",
         "cdn.syndication.twimg.com",
         "ads.twitter.com",
+        "adnxs.com",
+        "criteo.com",
+        "rubiconproject.com",
+        "openx.net",
+        "pubmatic.com",
+        "appnexus.com",
       ]
 
       // Block scripts from ad networks
@@ -36,10 +41,23 @@ export function AdBlocker() {
       const originalXHR = XMLHttpRequest.prototype.open
       XMLHttpRequest.prototype.open = function (method: string, url: string, ...rest: any[]) {
         if (adDomains.some((domain) => url.includes(domain))) {
-          console.log("[v0] Blocked ad request:", url)
           return
         }
         return originalXHR.apply(this, [method, url, ...rest])
+      }
+
+      const originalIframeDescriptor = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, "src")
+      if (originalIframeDescriptor) {
+        Object.defineProperty(HTMLIFrameElement.prototype, "src", {
+          set(value: string) {
+            if (!adDomains.some((domain) => value.includes(domain))) {
+              originalIframeDescriptor.set?.call(this, value)
+            }
+          },
+          get() {
+            return originalIframeDescriptor.get?.call(this)
+          },
+        })
       }
 
       // Remove ad-related iframes and scripts
@@ -49,10 +67,15 @@ export function AdBlocker() {
           'iframe[src*="googlesyndication"]',
           'iframe[src*="pagead"]',
           'iframe[src*="adservice"]',
+          'iframe[src*="ads.google"]',
+          'iframe[src*="criteo"]',
+          'iframe[src*="rubiconproject"]',
           'script[src*="doubleclick"]',
           'script[src*="googlesyndication"]',
           'script[src*="google-analytics"]',
           'script[src*="analytics.google"]',
+          'script[src*="facebook.com/tr"]',
+          'script[src*="connect.facebook"]',
         ]
 
         adSelectors.forEach((selector) => {
