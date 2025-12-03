@@ -73,12 +73,12 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
     .replace(/^-|-$/g, "")
   const currentSlug = slug
     ? slug
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")
+        .split("-")
+        .slice(1) // remove TMDB ID from slug to get actual slug
+        .join("-")
     : ""
 
-  if (currentSlug !== normalizedSlug) {
+  if (currentSlug && currentSlug !== normalizedSlug) {
     redirect(
       `/watch/${type}/${tmdbId}-${normalizedSlug}?${season ? `season=${season}&` : ""}${episode ? `episode=${episode}` : ""}`,
     )
