@@ -22,13 +22,14 @@ export function SettingsForm() {
   useEffect(() => {
     const prefs = getUserPreferences()
     setPreferences(prefs)
-  }, [])
+    if (prefs.theme !== "system") {
+      setTheme(prefs.theme)
+    }
+  }, [setTheme])
 
   const handleSave = () => {
     updateUserPreferences(preferences)
-    if (preferences.theme !== theme) {
-      setTheme(preferences.theme)
-    }
+    setTheme(preferences.theme)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }

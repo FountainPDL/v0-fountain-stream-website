@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Subtitles,
+  ChevronDown,
 } from "lucide-react"
 import { SubtitleOverlay } from "@/components/subtitle-overlay"
 import type { SubtitleCue } from "@/lib/subtitle-parser"
@@ -67,6 +68,7 @@ export function EnhancedPlayer({
   const [showControls, setShowControls] = useState(true)
   const [selectedQuality, setSelectedQuality] = useState("auto")
   const [selectedAudio, setSelectedAudio] = useState("en")
+  const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false)
   const controlsTimeoutRef = useRef<NodeJS.Timeout>()
 
   const handleMouseMove = () => {
@@ -121,8 +123,6 @@ export function EnhancedPlayer({
       setIsPlaying(!isPlaying)
     }
   }
-
-  // ... existing handler functions ...
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60)
@@ -335,7 +335,7 @@ export function EnhancedPlayer({
                       </Button>
 
                       {/* Quality */}
-                      <div className="relative group">
+                      <div className="relative">
                         <Button
                           size="sm"
                           variant="ghost"
@@ -360,7 +360,7 @@ export function EnhancedPlayer({
                       </div>
 
                       {/* Audio */}
-                      <div className="relative group">
+                      <div className="relative">
                         <Button
                           size="sm"
                           variant="ghost"
@@ -385,7 +385,7 @@ export function EnhancedPlayer({
                       </div>
 
                       {/* Speed */}
-                      <div className="relative group">
+                      <div className="relative">
                         <Button
                           size="sm"
                           variant="ghost"
@@ -539,25 +539,36 @@ export function EnhancedPlayer({
           </div>
 
           {sources.length > 1 && (
-            <div className="p-2 sm:p-4 border-t border-border/50 flex items-center gap-2">
+            <div className="p-2 sm:p-4 border-t border-border/50 flex items-center gap-2 flex-wrap">
               <span className="text-xs sm:text-sm font-medium">Source:</span>
-              <div className="relative group">
-                <Button size="sm" variant="outline" className="text-xs sm:text-sm bg-transparent">
+              <div className="relative">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs sm:text-sm bg-transparent flex items-center gap-1"
+                  onClick={() => setSourceDropdownOpen(!sourceDropdownOpen)}
+                >
                   {sources[activeSource]?.label || "Select Source"}
+                  <ChevronDown className="h-4 w-4" />
                 </Button>
-                <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-col bg-background border border-border/50 rounded-lg p-1 gap-1 z-50">
-                  {sources.map((source, index) => (
-                    <Button
-                      key={index}
-                      size="sm"
-                      variant={activeSource === index ? "default" : "ghost"}
-                      onClick={() => setActiveSource(index)}
-                      className="text-xs justify-start"
-                    >
-                      {source.label}
-                    </Button>
-                  ))}
-                </div>
+                {sourceDropdownOpen && (
+                  <div className="absolute left-0 top-full mt-1 flex flex-col bg-background border border-border/50 rounded-lg p-1 gap-1 z-50 min-w-max">
+                    {sources.map((source, index) => (
+                      <Button
+                        key={index}
+                        size="sm"
+                        variant={activeSource === index ? "default" : "ghost"}
+                        onClick={() => {
+                          setActiveSource(index)
+                          setSourceDropdownOpen(false)
+                        }}
+                        className="text-xs justify-start"
+                      >
+                        {source.label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

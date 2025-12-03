@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { getImageUrl, type Movie } from "@/lib/tmdb"
 import { useState, useEffect } from "react"
 import { getMovieCertification, getTVContentRating } from "@/lib/tmdb"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface MovieCardProps {
   movie: Movie
@@ -16,6 +17,7 @@ interface MovieCardProps {
 export function MovieCard({ movie }: MovieCardProps) {
   const [imageError, setImageError] = useState(false)
   const [certification, setCertification] = useState<string>("")
+  const [showDetails, setShowDetails] = useState(false)
   const title = movie.title || movie.name || "Untitled"
   const year = movie.release_date?.split("-")[0] || movie.first_air_date?.split("-")[0]
   const rating = movie.vote_average?.toFixed(1)
@@ -55,58 +57,81 @@ export function MovieCard({ movie }: MovieCardProps) {
   }
 
   return (
-    <Card className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 flex flex-col h-full">
-      <CardContent className="p-0 flex-1 flex flex-col">
-        <div className="relative aspect-[2/3] overflow-hidden">
-          <Image
-            src={imageError ? "/placeholder.svg?height=450&width=300" : getImageUrl(movie.poster_path)}
-            alt={title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-110"
-            onError={() => setImageError(true)}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-            <div className="absolute inset-0 p-3 flex flex-col justify-end">
-              {genres.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {genres.slice(0, 3).map((genre: any) => (
-                    <Badge key={genre.id} variant="secondary" className="text-xs">
-                      {genre.name}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              {movie.overview && <p className="text-white text-xs line-clamp-2 mb-2 leading-tight">{movie.overview}</p>}
-              <Link
-                href={`/watch/${mediaType}/${movie.id}-${slug}`}
-                className="flex items-center justify-center gap-2 text-white bg-primary hover:bg-primary/90 rounded px-2 py-1 text-sm font-semibold transition-colors"
+    <>
+      <Card className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur transition-all duration-300 hover:scale-105 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 flex flex-col h-full cursor-pointer">
+        <CardContent className="p-0 flex-1 flex flex-col">
+          <div className="relative aspect-[2/3] overflow-hidden" onClick={() => setShowDetails(true)}>
+            <Image
+              src={imageError ? "/placeholder.svg?height=450&width=300" : getImageUrl(movie.poster_path)}
+              alt={title}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-110"
+              onError={() => setImageError(true)}
+            />
+            <div className="absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-center justify-center">
+              <Play className="h-12 w-12 text-white" />
+            </div>
+            {rating && (
+              <Badge className="absolute top-2 right-2 bg-black/70 text-white border-0">
+                <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                {rating}
+              </Badge>
+            )}
+            {certification && (
+              <Badge
+                className={`absolute top-2 left-2 ${getCertificationColor(certification)} text-white border-0 font-bold`}
               >
-                <Play className="h-4 w-4" />
-                Watch Now
-              </Link>
+                {certification}
+              </Badge>
+            )}
+          </div>
+          <div className="p-3 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{title}</h3>
+              <p className="text-xs text-muted-foreground mt-1">{year}</p>
             </div>
           </div>
-          {rating && (
-            <Badge className="absolute top-2 right-2 bg-black/70 text-white border-0">
-              <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
-              {rating}
-            </Badge>
-          )}
-          {certification && (
-            <Badge
-              className={`absolute top-2 left-2 ${getCertificationColor(certification)} text-white border-0 font-bold`}
+        </CardContent>
+      </Card>
+
+      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">{title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {genres.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {genres.map((genre: any) => (
+                  <Badge key={genre.id} variant="secondary">
+                    {genre.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            {movie.overview && <p className="text-sm text-muted-foreground leading-relaxed">{movie.overview}</p>}
+            <div className="flex gap-2">
+              {rating && (
+                <Badge variant="secondary">
+                  <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                  {rating}
+                </Badge>
+              )}
+              {year && <Badge variant="outline">{year}</Badge>}
+              {certification && (
+                <Badge className={`${getCertificationColor(certification)} text-white border-0`}>{certification}</Badge>
+              )}
+            </div>
+            <Link
+              href={`/watch/${mediaType}/${movie.id}-${slug}`}
+              className="inline-flex items-center justify-center gap-2 text-white bg-primary hover:bg-primary/90 rounded px-4 py-2 font-semibold transition-colors"
             >
-              {certification}
-            </Badge>
-          )}
-        </div>
-        <div className="p-3 flex-1 flex flex-col justify-between">
-          <div>
-            <h3 className="font-semibold text-sm line-clamp-1 text-foreground">{title}</h3>
-            <p className="text-xs text-muted-foreground mt-1">{year}</p>
+              <Play className="h-4 w-4" />
+              Watch Now
+            </Link>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

@@ -115,18 +115,18 @@ export function HeroBanner({ movies }: HeroBannerProps) {
           <p className="text-base md:text-lg text-muted-foreground line-clamp-3 text-pretty">{movie.overview}</p>
 
           <div className="flex gap-3 flex-wrap">
-            <Button asChild size="lg" className="fountain-glow">
-              <Link href={`/watch/${mediaType}/${movie.id}-${slug}`}>
+            <Link href={`/watch/${mediaType}/${movie.id}-${slug}`} className="inline-block">
+              <Button size="lg" className="fountain-glow">
                 <Play className="mr-2 h-5 w-5" />
                 Watch Now
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href={`/watch/${mediaType}/${movie.id}-${slug}`}>
+              </Button>
+            </Link>
+            <Link href={`/watch/${mediaType}/${movie.id}-${slug}`} className="inline-block">
+              <Button variant="outline" size="lg">
                 <Info className="mr-2 h-5 w-5" />
                 More Info
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

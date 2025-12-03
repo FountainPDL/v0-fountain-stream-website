@@ -4,7 +4,6 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Header } from "@/components/header"
-import { AdBlocker } from "@/components/ad-blocker"
 import { Suspense } from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
@@ -24,7 +23,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <AdBlocker />
           <Suspense fallback={<div>Loading...</div>}>
             <Header />
           </Suspense>
