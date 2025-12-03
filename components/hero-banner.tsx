@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Play, Info, Star } from "lucide-react"
+import { Play, Info, Star, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { getImageUrl, type Movie, getMovieCertification, getTVContentRating } from "@/lib/tmdb"
@@ -45,6 +45,10 @@ export function HeroBanner({ movies }: HeroBannerProps) {
 
   const title = movie.title || movie.name || "Untitled"
   const mediaType = movie.media_type || "movie"
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
 
   const getCertificationColor = (cert: string) => {
     const upper = cert.toUpperCase()
@@ -53,6 +57,14 @@ export function HeroBanner({ movies }: HeroBannerProps) {
     if (["PG-13", "TV-14"].includes(upper)) return "bg-yellow-600"
     if (["R", "TV-MA", "NC-17"].includes(upper)) return "bg-red-600"
     return "bg-gray-600"
+  }
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + movies.length) % movies.length)
+  }
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % movies.length)
   }
 
   return (
@@ -104,13 +116,13 @@ export function HeroBanner({ movies }: HeroBannerProps) {
 
           <div className="flex gap-3 flex-wrap">
             <Button asChild size="lg" className="fountain-glow">
-              <Link href={`/watch/${mediaType}/${movie.id}`}>
+              <Link href={`/watch/${mediaType}/${movie.id}-${slug}`}>
                 <Play className="mr-2 h-5 w-5" />
                 Watch Now
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href={`/watch/${mediaType}/${movie.id}`}>
+              <Link href={`/watch/${mediaType}/${movie.id}-${slug}`}>
                 <Info className="mr-2 h-5 w-5" />
                 More Info
               </Link>
@@ -119,13 +131,28 @@ export function HeroBanner({ movies }: HeroBannerProps) {
         </div>
       </div>
 
+      <button
+        onClick={handlePrev}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/75 text-white p-2 sm:p-3 rounded-full transition-colors"
+        aria-label="Previous featured"
+      >
+        <ChevronLeft className="h-6 w-6" />
+      </button>
+      <button
+        onClick={handleNext}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/75 text-white p-2 sm:p-3 rounded-full transition-colors"
+        aria-label="Next featured"
+      >
+        <ChevronRight className="h-6 w-6" />
+      </button>
+
       {/* Carousel indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
         {movies.slice(0, 5).map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`h-1 rounded-full transition-all ${
+            className={`h-2 rounded-full transition-all ${
               index === currentIndex ? "w-8 bg-primary" : "w-4 bg-muted-foreground/50"
             }`}
             aria-label={`Go to slide ${index + 1}`}

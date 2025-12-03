@@ -1,4 +1,6 @@
-import { notFound } from "next/navigation"
+"use client"
+
+import { notFound, redirect } from "next/navigation"
 import { Star, Calendar, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,6 +10,7 @@ import { CastSection } from "@/components/cast-section"
 import { RelatedContent } from "@/components/related-content"
 import { CommentsSection } from "@/components/comments-section"
 import { DownloadButton } from "@/components/download-button"
+import { SeasonEpisodeSelector } from "@/components/season-episode-selector"
 import {
   getMovieDetails,
   getTVDetails,
@@ -21,6 +24,7 @@ interface WatchPageProps {
   params: Promise<{
     type: string
     id: string
+    slug?: string
   }>
   searchParams: Promise<{
     season?: string
@@ -29,7 +33,7 @@ interface WatchPageProps {
 }
 
 export default async function WatchPage({ params, searchParams }: WatchPageProps) {
-  const { type, id } = await params
+  const { type, id, slug } = await params
   const { season, episode } = await searchParams
 
   if (type !== "movie" && type !== "tv") {
@@ -63,6 +67,23 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
   const genres = details.genres || []
   const cast = credits.cast || []
 
+  const normalizedSlug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+  const currentSlug = slug
+    ? slug
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+    : ""
+
+  if (currentSlug !== normalizedSlug) {
+    redirect(
+      `/watch/${type}/${tmdbId}-${normalizedSlug}?${season ? `season=${season}&` : ""}${episode ? `episode=${episode}` : ""}`,
+    )
+  }
+
   // For TV shows, get seasons
   const seasons = type === "tv" ? details.seasons?.filter((s: any) => s.season_number > 0) || [] : []
   const currentSeason = season ? Number.parseInt(season) : 1
@@ -80,6 +101,7 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
             { url: `https://vidsrc.to/embed/movie/${details.imdb_id}`, type: "text/html", label: "VidSrc" },
             { url: `https://2embed.cc/embed/${details.imdb_id}`, type: "text/html", label: "2Embed" },
             { url: `https://autoembed.cc/embed/imdb/${details.imdb_id}`, type: "text/html", label: "AutoEmbed" },
+            { url: `https://multiembed.mov/?embed_id=${details.imdb_id}`, type: "text/html", label: "SuperEmbed" },
           ]}
           title={title}
           posterPath={details.poster_path}
@@ -90,16 +112,18 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           hasNextEpisode={hasNextEpisode}
           hasPreviousEpisode={hasPreviousEpisode}
           nextEpisodeUrl={
-            hasNextEpisode ? `/watch/tv/${tmdbId}?season=${currentSeason}&episode=${currentEpisode + 1}` : undefined
+            hasNextEpisode
+              ? `/watch/tv/${tmdbId}-${normalizedSlug}?season=${currentSeason}&episode=${currentEpisode + 1}`
+              : undefined
           }
           previousEpisodeUrl={
             currentEpisode > 1
-              ? `/watch/tv/${tmdbId}?season=${currentSeason}&episode=${currentEpisode - 1}`
+              ? `/watch/tv/${tmdbId}-${normalizedSlug}?season=${currentSeason}&episode=${currentEpisode - 1}`
               : currentSeason > 1
                 ? (() => {
                     const prevSeason = seasons.find((s: any) => s.season_number === currentSeason - 1)
                     return prevSeason
-                      ? `/watch/tv/${tmdbId}?season=${currentSeason - 1}&episode=${prevSeason.episode_count}`
+                      ? `/watch/tv/${tmdbId}-${normalizedSlug}?season=${currentSeason - 1}&episode=${prevSeason.episode_count}`
                       : undefined
                   })()
                 : undefined
@@ -126,38 +150,42 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           />
         </div>
 
-        {/* TV Show Episode Selector */}
+        {/* TV Show Season & Episode Selector - DROPDOWN MENU */}
         {type === "tv" && seasons.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Episodes</h2>
-            <div className="space-y-4">
-              {seasons.map((season: any) => (
-                <Card key={season.season_number} className="border-border/50 bg-card/50 backdrop-blur">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold">{season.name}</h3>
-                      <Badge variant="outline">{season.episode_count} Episodes</Badge>
-                    </div>
-                    <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-15 gap-2">
-                      {Array.from({ length: season.episode_count }, (_, i) => i + 1).map((ep) => (
-                        <a
-                          key={ep}
-                          href={`/watch/tv/${tmdbId}?season=${season.season_number}&episode=${ep}`}
-                          className={`aspect-square flex items-center justify-center rounded-md border text-sm font-medium transition-colors ${
-                            currentSeason === season.season_number && currentEpisode === ep
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-muted/50 hover:bg-muted border-border/50"
-                          }`}
-                        >
-                          {ep}
-                        </a>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+          <SeasonEpisodeSelector
+            seasons={seasons}
+            currentSeason={currentSeason}
+            currentEpisode={currentEpisode}
+            onSelect={(season, episode) => {
+              // Client-side navigation is handled via link navigation in the selector
+            }}
+          />
+        )}
+
+        {/* Movie Parts Selector - Similar to TV episodes */}
+        {type === "movie" && details.parts && details.parts.length > 1 && (
+          <Card className="border-border/50 bg-card/50 backdrop-blur">
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <h3 className="font-semibold">Movie Parts</h3>
+                <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
+                  {details.parts.map((part: any, index: number) => (
+                    <a
+                      key={part.id}
+                      href={`/watch/movie/${part.id}-${normalizedSlug}`}
+                      className={`aspect-square flex items-center justify-center rounded-md border text-sm font-medium transition-colors ${
+                        tmdbId === part.id
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted/50 hover:bg-muted border-border/50"
+                      }`}
+                    >
+                      {index + 1}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Details Section */}

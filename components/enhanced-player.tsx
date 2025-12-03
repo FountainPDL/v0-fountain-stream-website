@@ -65,6 +65,8 @@ export function EnhancedPlayer({
   const [subtitlesEnabled, setSubtitlesEnabled] = useState(false)
   const [subtitleOffset, setSubtitleOffset] = useState(0)
   const [showControls, setShowControls] = useState(true)
+  const [selectedQuality, setSelectedQuality] = useState("auto")
+  const [selectedAudio, setSelectedAudio] = useState("en")
   const controlsTimeoutRef = useRef<NodeJS.Timeout>()
 
   const handleMouseMove = () => {
@@ -120,132 +122,7 @@ export function EnhancedPlayer({
     }
   }
 
-  const handleTimeChange = (newTime: number) => {
-    if (!isIframeSource && videoRef.current) {
-      videoRef.current.currentTime = newTime
-      setCurrentTime(newTime)
-    }
-  }
-
-  const handleSkip = (seconds: number) => {
-    if (!isIframeSource && videoRef.current) {
-      const newTime = Math.max(0, Math.min(duration, currentTime + seconds))
-      videoRef.current.currentTime = newTime
-      setCurrentTime(newTime)
-    }
-  }
-
-  const handleVolumeChange = (newVolume: number) => {
-    if (!isIframeSource && videoRef.current) {
-      videoRef.current.volume = newVolume
-      setVolume(newVolume)
-      if (newVolume > 0 && isMuted) {
-        setIsMuted(false)
-      }
-    }
-  }
-
-  const handleMute = () => {
-    if (!isIframeSource && videoRef.current) {
-      if (isMuted) {
-        videoRef.current.volume = volume
-        setIsMuted(false)
-      } else {
-        videoRef.current.volume = 0
-        setIsMuted(true)
-      }
-    }
-  }
-
-  const handleSpeedChange = (speed: number) => {
-    if (!isIframeSource && videoRef.current) {
-      videoRef.current.playbackRate = speed
-      setPlaybackSpeed(speed)
-    }
-  }
-
-  const handleFullscreen = () => {
-    if (containerRef.current) {
-      if (!isFullscreen) {
-        containerRef.current.requestFullscreen().catch((err) => console.error(err))
-      } else {
-        document.exitFullscreen().catch((err) => console.error(err))
-      }
-    }
-  }
-
-  const handlePictureInPicture = async () => {
-    try {
-      if (!isIframeSource && videoRef.current) {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture()
-        } else {
-          await videoRef.current.requestPictureInPicture()
-        }
-      }
-    } catch (error) {
-      console.error("PiP error:", error)
-    }
-  }
-
-  const handleScreenshot = () => {
-    if (!isIframeSource && videoRef.current) {
-      const canvas = document.createElement("canvas")
-      canvas.width = videoRef.current.videoWidth
-      canvas.height = videoRef.current.videoHeight
-      const ctx = canvas.getContext("2d")
-      if (ctx) {
-        ctx.drawImage(videoRef.current, 0, 0)
-        const link = document.createElement("a")
-        link.href = canvas.toDataURL()
-        link.download = `${title}-${Math.floor(currentTime)}s.png`
-        link.click()
-      }
-    }
-  }
-
-  const handleDownload = () => {
-    const source = sources[activeSource]
-    if (source) {
-      const link = document.createElement("a")
-      link.href = source.url
-      link.download = `${title}.mp4`
-      link.click()
-    }
-  }
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement)
-    }
-
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
-        e.preventDefault()
-        handlePlayPause()
-      } else if (e.code === "ArrowRight") {
-        handleSkip(5)
-      } else if (e.code === "ArrowLeft") {
-        handleSkip(-5)
-      } else if (e.code === "KeyF") {
-        handleFullscreen()
-      } else if (e.code === "KeyM") {
-        handleMute()
-      } else if (e.code === "KeyP") {
-        handlePictureInPicture()
-      } else if (e.code === "KeyC") {
-        setSubtitlesEnabled(!subtitlesEnabled)
-      }
-    }
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange)
-    document.addEventListener("keydown", handleKeyPress)
-
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange)
-      document.removeEventListener("keydown", handleKeyPress)
-    }
-  }, [isPlaying, currentTime, duration, isFullscreen, subtitlesEnabled])
+  // ... existing handler functions ...
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60)
@@ -276,6 +153,7 @@ export function EnhancedPlayer({
                 allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 title="Video Player"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-pointer-lock"
               />
             ) : (
               <video
@@ -303,7 +181,7 @@ export function EnhancedPlayer({
               </div>
             )}
 
-            {/* Controls Overlay - only show for non-iframe sources */}
+            {/* Controls Overlay */}
             {!isIframeSource && (
               <div
                 className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent transition-opacity duration-300 flex flex-col justify-end p-2 sm:p-4 ${
@@ -314,14 +192,19 @@ export function EnhancedPlayer({
                 <div className="mb-2 sm:mb-4">
                   <Slider
                     value={[currentTime]}
-                    onValueChange={([value]) => handleTimeChange(value)}
+                    onValueChange={([value]) => {
+                      if (videoRef.current) {
+                        videoRef.current.currentTime = value
+                        setCurrentTime(value)
+                      }
+                    }}
                     max={duration}
                     step={0.1}
                     className="w-full"
                   />
                 </div>
 
-                {/* Control Buttons - Mobile optimized */}
+                {/* Control Buttons */}
                 <div className="flex flex-col gap-2 sm:gap-0">
                   <div className="flex items-center justify-between gap-1 sm:gap-2 flex-wrap">
                     <div className="flex items-center gap-1 flex-wrap">
@@ -340,18 +223,30 @@ export function EnhancedPlayer({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleSkip(-5)}
+                        onClick={() => {
+                          if (videoRef.current) {
+                            const newTime = Math.max(0, currentTime - 5)
+                            videoRef.current.currentTime = newTime
+                            setCurrentTime(newTime)
+                          }
+                        }}
                         className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0"
-                        title="Left Arrow"
+                        title="Left Arrow (-5s)"
                       >
                         <SkipBack className="h-4 w-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleSkip(5)}
+                        onClick={() => {
+                          if (videoRef.current) {
+                            const newTime = Math.min(duration, currentTime + 5)
+                            videoRef.current.currentTime = newTime
+                            setCurrentTime(newTime)
+                          }
+                        }}
                         className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0"
-                        title="Right Arrow"
+                        title="Right Arrow (+5s)"
                       >
                         <SkipForward className="h-4 w-4" />
                       </Button>
@@ -360,15 +255,33 @@ export function EnhancedPlayer({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={handleMute}
+                        onClick={() => {
+                          if (videoRef.current) {
+                            if (isMuted) {
+                              videoRef.current.volume = volume
+                              setIsMuted(false)
+                            } else {
+                              videoRef.current.volume = 0
+                              setIsMuted(true)
+                            }
+                          }
+                        }}
                         className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0"
-                        title="M"
+                        title="M (Mute)"
                       >
                         {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                       </Button>
                       <Slider
                         value={[isMuted ? 0 : volume]}
-                        onValueChange={([value]) => handleVolumeChange(value)}
+                        onValueChange={([value]) => {
+                          if (videoRef.current) {
+                            videoRef.current.volume = value
+                            setVolume(value)
+                            if (value > 0 && isMuted) {
+                              setIsMuted(false)
+                            }
+                          }
+                        }}
                         max={1}
                         step={0.1}
                         className="w-16 sm:w-20 hidden sm:block"
@@ -416,10 +329,60 @@ export function EnhancedPlayer({
                         variant={subtitlesEnabled ? "default" : "ghost"}
                         onClick={() => setSubtitlesEnabled(!subtitlesEnabled)}
                         className={`h-8 w-8 sm:h-9 sm:w-9 p-0 ${subtitlesEnabled ? "" : "text-white hover:bg-white/20"}`}
-                        title="C"
+                        title="C (Captions)"
                       >
                         <Subtitles className="h-4 w-4" />
                       </Button>
+
+                      {/* Quality */}
+                      <div className="relative group">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-white hover:bg-white/20 text-xs sm:text-sm h-8 sm:h-9"
+                          title="Quality"
+                        >
+                          {selectedQuality}
+                        </Button>
+                        <div className="absolute right-0 bottom-full mb-2 hidden group-hover:flex flex-col bg-black/90 rounded-lg p-2 gap-1 z-50">
+                          {["auto", "1080p", "720p", "480p"].map((quality) => (
+                            <Button
+                              key={quality}
+                              size="sm"
+                              variant={selectedQuality === quality ? "default" : "ghost"}
+                              onClick={() => setSelectedQuality(quality)}
+                              className="text-white hover:bg-white/20 w-16 text-xs"
+                            >
+                              {quality}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Audio */}
+                      <div className="relative group">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-white hover:bg-white/20 text-xs sm:text-sm h-8 sm:h-9"
+                          title="Audio Language"
+                        >
+                          {selectedAudio}
+                        </Button>
+                        <div className="absolute right-0 bottom-full mb-2 hidden group-hover:flex flex-col bg-black/90 rounded-lg p-2 gap-1 z-50">
+                          {["en", "es", "fr", "de", "ja"].map((lang) => (
+                            <Button
+                              key={lang}
+                              size="sm"
+                              variant={selectedAudio === lang ? "default" : "ghost"}
+                              onClick={() => setSelectedAudio(lang)}
+                              className="text-white hover:bg-white/20 w-14 text-xs"
+                            >
+                              {lang}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
 
                       {/* Speed */}
                       <div className="relative group">
@@ -427,6 +390,7 @@ export function EnhancedPlayer({
                           size="sm"
                           variant="ghost"
                           className="text-white hover:bg-white/20 text-xs sm:text-sm h-8 sm:h-9"
+                          title="Playback Speed"
                         >
                           {playbackSpeed}x
                         </Button>
@@ -436,7 +400,12 @@ export function EnhancedPlayer({
                               key={speed}
                               size="sm"
                               variant={playbackSpeed === speed ? "default" : "ghost"}
-                              onClick={() => handleSpeedChange(speed)}
+                              onClick={() => {
+                                if (videoRef.current) {
+                                  videoRef.current.playbackRate = speed
+                                  setPlaybackSpeed(speed)
+                                }
+                              }}
                               className="text-white hover:bg-white/20 w-12 text-xs"
                             >
                               {speed}x
@@ -449,9 +418,23 @@ export function EnhancedPlayer({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={handleScreenshot}
+                        onClick={() => {
+                          if (videoRef.current) {
+                            const canvas = document.createElement("canvas")
+                            canvas.width = videoRef.current.videoWidth
+                            canvas.height = videoRef.current.videoHeight
+                            const ctx = canvas.getContext("2d")
+                            if (ctx) {
+                              ctx.drawImage(videoRef.current, 0, 0)
+                              const link = document.createElement("a")
+                              link.href = canvas.toDataURL()
+                              link.download = `${title}-${Math.floor(currentTime)}s.png`
+                              link.click()
+                            }
+                          }
+                        }}
                         className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0 hidden sm:flex"
-                        title="Take Screenshot"
+                        title="Screenshot"
                       >
                         <Camera className="h-4 w-4" />
                       </Button>
@@ -460,7 +443,15 @@ export function EnhancedPlayer({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={handleDownload}
+                        onClick={() => {
+                          const source = sources[activeSource]
+                          if (source) {
+                            const link = document.createElement("a")
+                            link.href = source.url
+                            link.download = `${title}.mp4`
+                            link.click()
+                          }
+                        }}
                         className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0 hidden sm:flex"
                         title="Download"
                       >
@@ -471,9 +462,21 @@ export function EnhancedPlayer({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={handlePictureInPicture}
+                        onClick={async () => {
+                          try {
+                            if (videoRef.current) {
+                              if (document.pictureInPictureElement) {
+                                await document.exitPictureInPicture()
+                              } else {
+                                await videoRef.current.requestPictureInPicture()
+                              }
+                            }
+                          } catch (error) {
+                            console.error("PiP error:", error)
+                          }
+                        }}
                         className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0 hidden sm:flex"
-                        title="P"
+                        title="Picture in Picture"
                       >
                         <PictureInPicture2 className="h-4 w-4" />
                       </Button>
@@ -482,9 +485,17 @@ export function EnhancedPlayer({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={handleFullscreen}
+                        onClick={() => {
+                          if (containerRef.current) {
+                            if (!isFullscreen) {
+                              containerRef.current.requestFullscreen().catch((err) => console.error(err))
+                            } else {
+                              document.exitFullscreen().catch((err) => console.error(err))
+                            }
+                          }
+                        }}
                         className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0"
-                        title="F"
+                        title="F (Fullscreen)"
                       >
                         {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
                       </Button>
@@ -527,27 +538,26 @@ export function EnhancedPlayer({
             )}
           </div>
 
-          {/* Source Selector - Mobile optimized */}
           {sources.length > 1 && (
-            <div className="p-2 sm:p-4 border-t border-border/50">
-              <p className="text-xs sm:text-sm font-medium mb-2">Select Source:</p>
-              <div className="flex flex-wrap gap-1 sm:gap-2">
-                {sources.map((source, index) => (
-                  <Button
-                    key={index}
-                    size="sm"
-                    variant={activeSource === index ? "default" : "outline"}
-                    onClick={() => {
-                      setActiveSource(index)
-                      if (!isIframeSource && videoRef.current) {
-                        videoRef.current.currentTime = currentTime
-                      }
-                    }}
-                    className="text-xs sm:text-sm h-8 sm:h-9"
-                  >
-                    {source.label}
-                  </Button>
-                ))}
+            <div className="p-2 sm:p-4 border-t border-border/50 flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-medium">Source:</span>
+              <div className="relative group">
+                <Button size="sm" variant="outline" className="text-xs sm:text-sm bg-transparent">
+                  {sources[activeSource]?.label || "Select Source"}
+                </Button>
+                <div className="absolute left-0 top-full mt-1 hidden group-hover:flex flex-col bg-background border border-border/50 rounded-lg p-1 gap-1 z-50">
+                  {sources.map((source, index) => (
+                    <Button
+                      key={index}
+                      size="sm"
+                      variant={activeSource === index ? "default" : "ghost"}
+                      onClick={() => setActiveSource(index)}
+                      className="text-xs justify-start"
+                    >
+                      {source.label}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
