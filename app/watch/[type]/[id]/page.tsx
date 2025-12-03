@@ -1,6 +1,4 @@
-"use client"
-
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { Star, Calendar, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -21,20 +19,20 @@ import {
 } from "@/lib/tmdb"
 
 interface WatchPageProps {
-  params: Promise<{
+  params: {
     type: string
     id: string
     slug?: string
-  }>
-  searchParams: Promise<{
+  }
+  searchParams: {
     season?: string
     episode?: string
-  }>
+  }
 }
 
 export default async function WatchPage({ params, searchParams }: WatchPageProps) {
-  const { type, id, slug } = await params
-  const { season, episode } = await searchParams
+  const { type, id, slug } = params
+  const { season, episode } = searchParams
 
   if (type !== "movie" && type !== "tv") {
     notFound()
@@ -57,7 +55,6 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
     credits = results[1]
     similar = results[2]
   } catch (error) {
-    // If the movie/TV show doesn't exist or any fetch fails, show 404 page
     notFound()
   }
 
@@ -71,18 +68,6 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
-  const currentSlug = slug
-    ? slug
-        .split("-")
-        .slice(1) // remove TMDB ID from slug to get actual slug
-        .join("-")
-    : ""
-
-  if (currentSlug && currentSlug !== normalizedSlug) {
-    redirect(
-      `/watch/${type}/${tmdbId}-${normalizedSlug}?${season ? `season=${season}&` : ""}${episode ? `episode=${episode}` : ""}`,
-    )
-  }
 
   // For TV shows, get seasons
   const seasons = type === "tv" ? details.seasons?.filter((s: any) => s.season_number > 0) || [] : []
@@ -156,13 +141,12 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
             seasons={seasons}
             currentSeason={currentSeason}
             currentEpisode={currentEpisode}
-            onSelect={(season, episode) => {
-              // Client-side navigation is handled via link navigation in the selector
-            }}
+            tmdbId={tmdbId}
+            slug={normalizedSlug}
           />
         )}
 
-        {/* Movie Parts Selector - Similar to TV episodes */}
+        {/* Movie Parts Selector */}
         {type === "movie" && details.parts && details.parts.length > 1 && (
           <Card className="border-border/50 bg-card/50 backdrop-blur">
             <CardContent className="p-4">
