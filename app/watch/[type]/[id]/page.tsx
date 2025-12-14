@@ -2,12 +2,10 @@ import { notFound } from "next/navigation"
 import { Star, Calendar, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { EnhancedPlayer } from "@/components/enhanced-player"
-import { SubtitleSelector } from "@/components/subtitle-selector"
+import { VideoPlayerNew } from "@/components/video-player-new"
 import { CastSection } from "@/components/cast-section"
 import { RelatedContent } from "@/components/related-content"
 import { CommentsSection } from "@/components/comments-section"
-import { DownloadButton } from "@/components/download-button"
 import { SeasonEpisodeSelector } from "@/components/season-episode-selector"
 import {
   getMovieDetails,
@@ -31,14 +29,16 @@ interface WatchPageProps {
 }
 
 export default async function WatchPage({ params, searchParams }: WatchPageProps) {
-  const { type, id, slug } = params
+  const { type, id } = params
   const { season, episode } = searchParams
 
   if (type !== "movie" && type !== "tv") {
     notFound()
   }
 
-  const tmdbId = Number.parseInt(id)
+  const idMatch = id.match(/^(\d+)/)
+  const tmdbId = idMatch ? Number.parseInt(idMatch[1]) : Number.parseInt(id)
+
   if (Number.isNaN(tmdbId)) {
     notFound()
   }
@@ -78,16 +78,71 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
   const hasNextEpisode = currentEpisode < (currentSeasonData?.episode_count || 0)
   const hasPreviousEpisode = currentEpisode > 1 || currentSeason > 1
 
+  const movieSources = details.imdb_id
+    ? [
+        { url: `https://vidsrc.xyz/embed/movie/${details.imdb_id}`, type: "text/html", label: "VidSrc" },
+        { url: `https://vidsrc.cc/v2/embed/movie/${details.imdb_id}`, type: "text/html", label: "VidSrc 2" },
+        { url: `https://www.2embed.cc/embed/${details.imdb_id}`, type: "text/html", label: "2Embed" },
+        { url: `https://multiembed.mov/?video_id=${details.imdb_id}`, type: "text/html", label: "SuperEmbed" },
+      ]
+    : [
+        { url: `https://vidsrc.xyz/embed/movie/${tmdbId}`, type: "text/html", label: "VidSrc" },
+        { url: `https://vidsrc.cc/v2/embed/movie/${tmdbId}`, type: "text/html", label: "VidSrc 2" },
+        { url: `https://www.2embed.cc/embed/tmdb/movie?id=${tmdbId}`, type: "text/html", label: "2Embed" },
+        { url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`, type: "text/html", label: "SuperEmbed" },
+      ]
+
+  const tvSources = details.imdb_id
+    ? [
+        {
+          url: `https://vidsrc.xyz/embed/tv/${details.imdb_id}/${currentSeason}/${currentEpisode}`,
+          type: "text/html",
+          label: "VidSrc",
+        },
+        {
+          url: `https://vidsrc.cc/v2/embed/tv/${details.imdb_id}/${currentSeason}/${currentEpisode}`,
+          type: "text/html",
+          label: "VidSrc 2",
+        },
+        {
+          url: `https://www.2embed.cc/embedtv/${details.imdb_id}&s=${currentSeason}&e=${currentEpisode}`,
+          type: "text/html",
+          label: "2Embed",
+        },
+        {
+          url: `https://multiembed.mov/?video_id=${details.imdb_id}&s=${currentSeason}&e=${currentEpisode}`,
+          type: "text/html",
+          label: "SuperEmbed",
+        },
+      ]
+    : [
+        {
+          url: `https://vidsrc.xyz/embed/tv/${tmdbId}/${currentSeason}/${currentEpisode}`,
+          type: "text/html",
+          label: "VidSrc",
+        },
+        {
+          url: `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${currentSeason}/${currentEpisode}`,
+          type: "text/html",
+          label: "VidSrc 2",
+        },
+        {
+          url: `https://www.2embed.cc/embedtv/tmdb/tv?id=${tmdbId}&s=${currentSeason}&e=${currentEpisode}`,
+          type: "text/html",
+          label: "2Embed",
+        },
+        {
+          url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${currentSeason}&e=${currentEpisode}`,
+          type: "text/html",
+          label: "SuperEmbed",
+        },
+      ]
+
   return (
     <div className="min-h-screen">
       <div className="container px-4 py-8 space-y-8">
-        <EnhancedPlayer
-          sources={[
-            { url: `https://vidsrc.to/embed/movie/${details.imdb_id}`, type: "text/html", label: "VidSrc" },
-            { url: `https://2embed.cc/embed/${details.imdb_id}`, type: "text/html", label: "2Embed" },
-            { url: `https://autoembed.cc/embed/imdb/${details.imdb_id}`, type: "text/html", label: "AutoEmbed" },
-            { url: `https://multiembed.mov/?embed_id=${details.imdb_id}`, type: "text/html", label: "SuperEmbed" },
-          ]}
+        <VideoPlayerNew
+          sources={type === "movie" ? movieSources : tvSources}
           title={title}
           posterPath={details.poster_path}
           mediaType={type}
@@ -114,26 +169,6 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
                 : undefined
           }
         />
-
-        {/* Subtitle Selector */}
-        <SubtitleSelector
-          mediaType={type}
-          tmdbId={tmdbId}
-          season={type === "tv" ? currentSeason : undefined}
-          episode={type === "tv" ? currentEpisode : undefined}
-        />
-
-        {/* Download Button */}
-        <div className="flex justify-center">
-          <DownloadButton
-            mediaType={type}
-            tmdbId={tmdbId}
-            imdbId={details.imdb_id}
-            season={type === "tv" ? currentSeason : undefined}
-            episode={type === "tv" ? currentEpisode : undefined}
-            title={title}
-          />
-        </div>
 
         {/* TV Show Season & Episode Selector - DROPDOWN MENU */}
         {type === "tv" && seasons.length > 0 && (
