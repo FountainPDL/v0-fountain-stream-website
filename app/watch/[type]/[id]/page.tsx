@@ -139,8 +139,8 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
       ]
 
   return (
-    <div className="min-h-screen overflow-visible">
-      <div className="container px-4 py-8 space-y-8 overflow-visible">
+    <div className="min-h-screen">
+      <div className="container px-4 py-8 space-y-8">
         <VideoPlayerNew
           sources={type === "movie" ? movieSources : tvSources}
           title={title}

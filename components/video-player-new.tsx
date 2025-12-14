@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ChevronDown, RefreshCw, Download } from "lucide-react"
 import { SubtitleSelector } from "@/components/subtitle-selector"
-import JSZip from "jszip"
 
 interface VideoPlayerProps {
   sources: Array<{ url: string; type: string; label: string }>
@@ -78,30 +77,20 @@ export function VideoPlayerNew({
 
   const handleSecureDownload = async () => {
     try {
-      const zip = new JSZip()
-      const fileName = `${title.replace(/[^a-z0-9]/gi, "_")}_download_info.txt`
-      const content = `
-FountainHome Download Info
-=========================
-Title: ${title}
-Type: ${mediaType}
-${season ? `Season: ${season}` : ""}
-${episode ? `Episode: ${episode}` : ""}
+      const currentSource = sources[activeSource]
+      const downloadUrl = currentSource.url
 
-Available Sources:
-${sources.map((s, i) => `${i + 1}. ${s.label}: ${s.url}`).join("\n")}
+      // Open in new tab for user to download from the source
+      window.open(downloadUrl, "_blank")
 
-Note: Right-click on the source URL and open in new tab to access the video.
-Use browser extensions or download managers for best results.
-`
-      zip.file(fileName, content)
-      const blob = await zip.generateAsync({ type: "blob" })
-      const url = URL.createObjectURL(blob)
+      // Attempt to trigger download if possible
       const a = document.createElement("a")
-      a.href = url
-      a.download = `${title.replace(/[^a-z0-9]/gi, "_")}_sources.zip`
+      a.href = downloadUrl
+      a.download = `${title.replace(/[^a-z0-9]/gi, "_")}.mp4`
+      a.target = "_blank"
+      document.body.appendChild(a)
       a.click()
-      URL.revokeObjectURL(url)
+      document.body.removeChild(a)
     } catch (error) {
       console.error("[v0] Download failed:", error)
     }
@@ -109,8 +98,8 @@ Use browser extensions or download managers for best results.
 
   return (
     <div className="space-y-4">
-      <Card className="border-border/50 bg-card/50 backdrop-blur overflow-visible">
-        <CardContent className="p-0 overflow-visible">
+      <Card className="border-border/50 bg-card/50 backdrop-blur">
+        <CardContent className="p-0">
           <div className="relative aspect-video w-full bg-black">
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
@@ -138,17 +127,16 @@ Use browser extensions or download managers for best results.
               allowFullScreen
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               title="Video Player"
-              sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-pointer-lock allow-top-navigation"
               onLoad={handleIframeLoad}
               onError={handleIframeError}
             />
           </div>
 
-          <div className="p-3 sm:p-4 border-t border-border/50 space-y-3 overflow-visible">
-            <div className="flex items-center justify-between gap-2 flex-wrap overflow-visible">
-              <div className="flex items-center gap-2 flex-1 min-w-0 overflow-visible">
+          <div className="p-3 sm:p-4 border-t border-border/50 space-y-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
                 <span className="text-xs sm:text-sm font-medium">Source:</span>
-                <div className="relative flex-1 max-w-xs overflow-visible">
+                <div className="relative flex-1 max-w-xs">
                   <Button
                     size="sm"
                     variant="outline"
@@ -160,8 +148,8 @@ Use browser extensions or download managers for best results.
                   </Button>
                   {sourceDropdownOpen && (
                     <>
-                      <div className="fixed inset-0 z-[100]" onClick={() => setSourceDropdownOpen(false)} />
-                      <div className="absolute left-0 right-0 top-full mt-1 flex flex-col bg-background border border-border rounded-lg p-1 gap-1 z-[150] shadow-lg max-h-60 overflow-y-auto min-w-[160px]">
+                      <div className="fixed inset-0 z-[9998]" onClick={() => setSourceDropdownOpen(false)} />
+                      <div className="absolute left-0 right-0 top-full mt-1 flex flex-col bg-background border border-border rounded-lg p-1 gap-1 z-[9999] shadow-2xl max-h-60 overflow-y-auto min-w-[160px]">
                         {sources.map((source, index) => (
                           <Button
                             key={index}
