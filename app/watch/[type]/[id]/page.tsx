@@ -81,14 +81,14 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
   const movieSources = details.imdb_id
     ? [
         { url: `https://vidsrc.xyz/embed/movie/${details.imdb_id}`, type: "text/html", label: "VidSrc" },
-        { url: `https://vidsrc.cc/v2/embed/movie/${details.imdb_id}`, type: "text/html", label: "VidSrc 2" },
         { url: `https://www.2embed.cc/embed/${details.imdb_id}`, type: "text/html", label: "2Embed" },
+        { url: `https://autoembed.cc/movie/imdb/${details.imdb_id}`, type: "text/html", label: "AutoEmbed" },
         { url: `https://multiembed.mov/?video_id=${details.imdb_id}`, type: "text/html", label: "SuperEmbed" },
       ]
     : [
         { url: `https://vidsrc.xyz/embed/movie/${tmdbId}`, type: "text/html", label: "VidSrc" },
-        { url: `https://vidsrc.cc/v2/embed/movie/${tmdbId}`, type: "text/html", label: "VidSrc 2" },
         { url: `https://www.2embed.cc/embed/tmdb/movie?id=${tmdbId}`, type: "text/html", label: "2Embed" },
+        { url: `https://autoembed.cc/movie/tmdb/${tmdbId}`, type: "text/html", label: "AutoEmbed" },
         { url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`, type: "text/html", label: "SuperEmbed" },
       ]
 
@@ -100,14 +100,14 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           label: "VidSrc",
         },
         {
-          url: `https://vidsrc.cc/v2/embed/tv/${details.imdb_id}/${currentSeason}/${currentEpisode}`,
-          type: "text/html",
-          label: "VidSrc 2",
-        },
-        {
           url: `https://www.2embed.cc/embedtv/${details.imdb_id}&s=${currentSeason}&e=${currentEpisode}`,
           type: "text/html",
           label: "2Embed",
+        },
+        {
+          url: `https://autoembed.cc/tv/imdb/${details.imdb_id}/${currentSeason}/${currentEpisode}`,
+          type: "text/html",
+          label: "AutoEmbed",
         },
         {
           url: `https://multiembed.mov/?video_id=${details.imdb_id}&s=${currentSeason}&e=${currentEpisode}`,
@@ -122,14 +122,14 @@ export default async function WatchPage({ params, searchParams }: WatchPageProps
           label: "VidSrc",
         },
         {
-          url: `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${currentSeason}/${currentEpisode}`,
-          type: "text/html",
-          label: "VidSrc 2",
-        },
-        {
           url: `https://www.2embed.cc/embedtv/tmdb/tv?id=${tmdbId}&s=${currentSeason}&e=${currentEpisode}`,
           type: "text/html",
           label: "2Embed",
+        },
+        {
+          url: `https://autoembed.cc/tv/tmdb/${tmdbId}/${currentSeason}/${currentEpisode}`,
+          type: "text/html",
+          label: "AutoEmbed",
         },
         {
           url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${currentSeason}&e=${currentEpisode}`,
