@@ -6,8 +6,8 @@ import Link from "next/link"
 import { Play, Info, Star, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getImageUrl, type Movie, getMovieCertification, getTVContentRating } from "@/lib/tmdb"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { getImageUrl, type Movie } from "@/lib/tmdb"
 
 interface HeroBannerProps {
   movies: Movie[]
@@ -15,7 +15,6 @@ interface HeroBannerProps {
 
 export function HeroBanner({ movies }: HeroBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [certification, setCertification] = useState<string>("")
   const [showDetails, setShowDetails] = useState(false)
   const movie = movies[currentIndex]
 
@@ -27,22 +26,6 @@ export function HeroBanner({ movies }: HeroBannerProps) {
     return () => clearInterval(interval)
   }, [movies.length])
 
-  useEffect(() => {
-    if (!movie) return
-
-    const fetchCert = async () => {
-      const mediaType = movie.media_type || "movie"
-      if (mediaType === "movie") {
-        const cert = await getMovieCertification(movie.id)
-        setCertification(cert)
-      } else if (mediaType === "tv") {
-        const cert = await getTVContentRating(movie.id)
-        setCertification(cert)
-      }
-    }
-    fetchCert()
-  }, [movie])
-
   if (!movie) return null
 
   const title = movie.title || movie.name || "Untitled"
@@ -51,15 +34,6 @@ export function HeroBanner({ movies }: HeroBannerProps) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
-
-  const getCertificationColor = (cert: string) => {
-    const upper = cert.toUpperCase()
-    if (["G", "TV-Y", "TV-G"].includes(upper)) return "bg-green-600"
-    if (["PG", "TV-PG"].includes(upper)) return "bg-blue-600"
-    if (["PG-13", "TV-14"].includes(upper)) return "bg-yellow-600"
-    if (["R", "TV-MA", "NC-17"].includes(upper)) return "bg-red-600"
-    return "bg-gray-600"
-  }
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev - 1 + movies.length) % movies.length)
@@ -94,11 +68,6 @@ export function HeroBanner({ movies }: HeroBannerProps) {
             </h1>
 
             <div className="flex items-center gap-3 flex-wrap">
-              {certification && (
-                <Badge className={`${getCertificationColor(certification)} text-white border-0 font-bold`}>
-                  {certification}
-                </Badge>
-              )}
               {movie.vote_average && (
                 <Badge variant="secondary" className="text-sm">
                   <Star className="h-4 w-4 mr-1 fill-yellow-400 text-yellow-400" />
@@ -169,13 +138,11 @@ export function HeroBanner({ movies }: HeroBannerProps) {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl">{title}</DialogTitle>
+            <DialogDescription>Learn more about {title} and start watching</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {movie.overview && <p className="text-sm text-muted-foreground leading-relaxed">{movie.overview}</p>}
             <div className="flex gap-2 flex-wrap">
-              {certification && (
-                <Badge className={`${getCertificationColor(certification)} text-white border-0`}>{certification}</Badge>
-              )}
               {movie.vote_average && (
                 <Badge variant="secondary">
                   <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />

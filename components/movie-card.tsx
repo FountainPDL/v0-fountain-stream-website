@@ -6,9 +6,8 @@ import { Star, Play } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { getImageUrl, type Movie } from "@/lib/tmdb"
-import { useState, useEffect } from "react"
-import { getMovieCertification, getTVContentRating } from "@/lib/tmdb"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 
 interface MovieCardProps {
   movie: Movie
@@ -16,7 +15,6 @@ interface MovieCardProps {
 
 export function MovieCard({ movie }: MovieCardProps) {
   const [imageError, setImageError] = useState(false)
-  const [certification, setCertification] = useState<string>("")
   const [showDetails, setShowDetails] = useState(false)
   const title = movie.title || movie.name || "Untitled"
   const year = movie.release_date?.split("-")[0] || movie.first_air_date?.split("-")[0]
@@ -27,25 +25,6 @@ export function MovieCard({ movie }: MovieCardProps) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
-
-  useEffect(() => {
-    const fetchRating = async () => {
-      try {
-        let cert = ""
-        if (mediaType === "movie") {
-          cert = await getMovieCertification(movie.id)
-        } else if (mediaType === "tv") {
-          cert = await getTVContentRating(movie.id)
-        }
-        setCertification(cert || "")
-      } catch (error) {
-        setCertification("")
-      }
-    }
-
-    const timer = setTimeout(fetchRating, Math.random() * 500)
-    return () => clearTimeout(timer)
-  }, [movie.id, mediaType])
 
   const getCertificationColor = (cert: string) => {
     const upper = cert.toUpperCase()
@@ -77,13 +56,6 @@ export function MovieCard({ movie }: MovieCardProps) {
                 {rating}
               </Badge>
             )}
-            {certification && (
-              <Badge
-                className={`absolute top-2 left-2 ${getCertificationColor(certification)} text-white border-0 font-bold`}
-              >
-                {certification}
-              </Badge>
-            )}
           </div>
           <div className="p-3 flex-1 flex flex-col justify-between">
             <div>
@@ -98,6 +70,7 @@ export function MovieCard({ movie }: MovieCardProps) {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl">{title}</DialogTitle>
+            <DialogDescription>View details about {title} and start watching</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {genres.length > 0 && (
@@ -118,9 +91,6 @@ export function MovieCard({ movie }: MovieCardProps) {
                 </Badge>
               )}
               {year && <Badge variant="outline">{year}</Badge>}
-              {certification && (
-                <Badge className={`${getCertificationColor(certification)} text-white border-0`}>{certification}</Badge>
-              )}
             </div>
             <Link
               href={`/watch/${mediaType}/${movie.id}-${slug}`}
