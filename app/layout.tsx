@@ -21,6 +21,14 @@ export const metadata: Metadata = {
   title: "FountainHome - Stream Movies, TV Shows & Anime",
   description: "Your ultimate streaming destination with a cyber fountain experience",
   generator: "v0.app",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-dark-32x32.png", media: "(prefers-color-scheme: dark)", sizes: "32x32" },
+      { url: "/icon-light-32x32.png", media: "(prefers-color-scheme: light)", sizes: "32x32" },
+    ],
+    apple: "/apple-icon.png",
+  },
 }
 
 export default function RootLayout({
