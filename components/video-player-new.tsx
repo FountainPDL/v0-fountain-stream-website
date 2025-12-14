@@ -109,8 +109,8 @@ Use browser extensions or download managers for best results.
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur">
-        <CardContent className="p-0">
+      <Card className="border-border/50 bg-card/50 backdrop-blur overflow-visible">
+        <CardContent className="p-0 overflow-visible">
           <div className="relative aspect-video w-full bg-black">
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
@@ -144,11 +144,11 @@ Use browser extensions or download managers for best results.
             />
           </div>
 
-          <div className="p-3 sm:p-4 border-t border-border/50 space-y-3">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="p-3 sm:p-4 border-t border-border/50 space-y-3 overflow-visible">
+            <div className="flex items-center justify-between gap-2 flex-wrap overflow-visible">
+              <div className="flex items-center gap-2 flex-1 min-w-0 overflow-visible">
                 <span className="text-xs sm:text-sm font-medium">Source:</span>
-                <div className="relative flex-1 max-w-xs">
+                <div className="relative flex-1 max-w-xs overflow-visible">
                   <Button
                     size="sm"
                     variant="outline"
@@ -160,8 +160,8 @@ Use browser extensions or download managers for best results.
                   </Button>
                   {sourceDropdownOpen && (
                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setSourceDropdownOpen(false)} />
-                      <div className="absolute left-0 right-0 top-full mt-1 flex flex-col bg-background border border-border rounded-lg p-1 gap-1 z-50 shadow-lg max-h-60 overflow-y-auto">
+                      <div className="fixed inset-0 z-[100]" onClick={() => setSourceDropdownOpen(false)} />
+                      <div className="absolute left-0 right-0 top-full mt-1 flex flex-col bg-background border border-border rounded-lg p-1 gap-1 z-[150] shadow-lg max-h-60 overflow-y-auto min-w-[160px]">
                         {sources.map((source, index) => (
                           <Button
                             key={index}
