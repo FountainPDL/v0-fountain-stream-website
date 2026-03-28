@@ -24,10 +24,10 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/icon-dark-32x32.png", media: "(prefers-color-scheme: dark)", sizes: "32x32" },
-      { url: "/icon-light-32x32.png", media: "(prefers-color-scheme: light)", sizes: "32x32" },
+      { url: "/icon.svg", sizes: "any", type: "image/svg+xml" },
     ],
-    apple: "/apple-icon.png",
+    shortcut: "/icon.svg",
+    apple: [{ url: "/icon.svg" }],
   },
 }
 
@@ -44,6 +44,9 @@ export default function RootLayout({
             <Header />
           </Suspense>
           <main className="min-h-screen">{children}</main>
+          <footer className="border-t border-border/50 bg-card/50 py-4 text-center">
+            <p className="text-sm text-muted-foreground">Made with 🙂 for movie lovers</p>
+          </footer>
           <Analytics />
         </ThemeProvider>
       </body>

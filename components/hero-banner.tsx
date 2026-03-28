@@ -21,7 +21,7 @@ export function HeroBanner({ movies }: HeroBannerProps) {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % movies.length)
-    }, 8000)
+    }, 6000)
 
     return () => clearInterval(interval)
   }, [movies.length])
@@ -49,10 +49,11 @@ export function HeroBanner({ movies }: HeroBannerProps) {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
+            key={movie.id}
             src={getImageUrl(movie.backdrop_path, "original") || "/placeholder.svg"}
             alt={title}
             fill
-            className="object-cover"
+            className="object-cover transition-opacity duration-700 ease-in-out"
             priority
           />
           {/* Gradient overlays */}
