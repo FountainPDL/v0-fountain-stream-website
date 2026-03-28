@@ -42,7 +42,6 @@ export function VideoPlayerNew({
   useEffect(() => {
     if (error && retryCount < sources.length - 1) {
       const timer = setTimeout(() => {
-        console.log("[v0] Auto-switching to next source due to error")
         setActiveSource((prev) => (prev + 1) % sources.length)
         setError(false)
         setRetryCount((prev) => prev + 1)
@@ -55,7 +54,6 @@ export function VideoPlayerNew({
   useEffect(() => {
     if (hasNextEpisode && nextEpisodeUrl) {
       const handleAutoNext = () => {
-        console.log("[v0] Auto-playing next episode")
         window.location.href = nextEpisodeUrl
       }
       // Listen for video end events (if accessible)
@@ -70,7 +68,6 @@ export function VideoPlayerNew({
   }
 
   const handleIframeError = () => {
-    console.log("[v0] Iframe failed to load")
     setIsLoading(false)
     setError(true)
   }
