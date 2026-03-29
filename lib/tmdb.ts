@@ -53,7 +53,7 @@ export async function getPopular(page = 1) {
 export async function getMovies(page = 1) {
   try {
     const data = await fetchTMDB(`/movie/popular?page=${page}`)
-    return data.results as Movie[]
+    return data.results.map((movie: Movie) => ({ ...movie, media_type: "movie" })) as Movie[]
   } catch (error) {
     return []
   }
@@ -62,7 +62,7 @@ export async function getMovies(page = 1) {
 export async function getTVShows(page = 1) {
   try {
     const data = await fetchTMDB(`/tv/popular?page=${page}`)
-    return data.results as Movie[]
+    return data.results.map((tv: Movie) => ({ ...tv, media_type: "tv" })) as Movie[]
   } catch (error) {
     return []
   }
@@ -80,7 +80,8 @@ export async function getLatest(page = 1) {
 export async function searchContent(query: string) {
   try {
     const data = await fetchTMDB(`/search/multi?query=${encodeURIComponent(query)}`)
-    return data.results as Movie[]
+    // Ensure media_type is set (multi search returns it, but normalize it)
+    return data.results.filter((item: Movie) => item.media_type === "movie" || item.media_type === "tv") as Movie[]
   } catch (error) {
     return []
   }
@@ -89,7 +90,7 @@ export async function searchContent(query: string) {
 export async function getAnime(page = 1) {
   try {
     const data = await fetchTMDB(`/discover/tv?with_genres=16&with_keywords=210024&page=${page}`)
-    return data.results as Movie[]
+    return data.results.map((show: Movie) => ({ ...show, media_type: "tv" })) as Movie[]
   } catch (error) {
     return []
   }
@@ -98,7 +99,7 @@ export async function getAnime(page = 1) {
 export async function getPowerRangers(page = 1) {
   try {
     const data = await fetchTMDB(`/search/tv?query=power%20rangers&page=${page}`)
-    return data.results as Movie[]
+    return data.results.map((show: Movie) => ({ ...show, media_type: "tv" })) as Movie[]
   } catch (error) {
     return []
   }
