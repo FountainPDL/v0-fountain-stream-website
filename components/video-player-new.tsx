@@ -33,11 +33,23 @@ export function VideoPlayerNew({
   nextEpisodeUrl,
 }: VideoPlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const dropdownButtonRef = useRef<HTMLButtonElement>(null)
   const [activeSource, setActiveSource] = useState(0)
   const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false)
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
+
+  useEffect(() => {
+    if (sourceDropdownOpen && dropdownButtonRef.current) {
+      const rect = dropdownButtonRef.current.getBoundingClientRect()
+      setDropdownPos({
+        top: rect.bottom + window.scrollY,
+        left: rect.left,
+      })
+    }
+  }, [sourceDropdownOpen])
 
   useEffect(() => {
     if (error && retryCount < sources.length - 1) {
@@ -124,8 +136,9 @@ export function VideoPlayerNew({
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <span className="text-xs sm:text-sm font-medium">Source:</span>
-                <div className="relative flex-1 max-w-xs">
+                <div className="flex-1 max-w-xs">
                   <Button
+                    ref={dropdownButtonRef}
                     size="sm"
                     variant="outline"
                     className="w-full text-xs sm:text-sm bg-transparent flex items-center justify-between gap-2 touch-manipulation"
@@ -137,7 +150,10 @@ export function VideoPlayerNew({
                   {sourceDropdownOpen && (
                     <>
                       <div className="fixed inset-0 z-[9998]" onClick={() => setSourceDropdownOpen(false)} />
-                      <div className="absolute left-0 right-0 top-full mt-1 flex flex-col bg-background border border-border rounded-lg p-1 gap-1 z-[9999] shadow-2xl max-h-60 overflow-y-auto min-w-[160px]">
+                      <div 
+                        className="fixed flex flex-col bg-background border border-border rounded-lg p-1 gap-1 z-[9999] shadow-2xl max-h-60 overflow-y-auto min-w-[160px]"
+                        style={{ top: `${dropdownPos.top}px`, left: `${dropdownPos.left}px` }}
+                      >
                         {sources.map((source, index) => (
                           <Button
                             key={index}
