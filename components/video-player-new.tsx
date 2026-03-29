@@ -129,7 +129,6 @@ export function VideoPlayerNew({
               title="Video Player"
               onLoad={handleIframeLoad}
               onError={handleIframeError}
-              sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
             />
           </div>
 
@@ -150,10 +149,10 @@ export function VideoPlayerNew({
                   </Button>
                   {sourceDropdownOpen && (
                     <>
-                      <div className="fixed inset-0 z-[9998]" onClick={() => setSourceDropdownOpen(false)} />
+                      <div className="fixed inset-0" style={{ zIndex: 9998 }} onClick={() => setSourceDropdownOpen(false)} />
                       <div 
-                        className="fixed flex flex-col bg-background border border-border rounded-lg p-1 gap-1 z-[9999] shadow-2xl max-h-60 overflow-y-auto min-w-[160px]"
-                        style={{ top: `${dropdownPos.top}px`, left: `${dropdownPos.left}px` }}
+                        className="fixed flex flex-col bg-background border border-border rounded-lg p-1 gap-1 shadow-2xl max-h-60 overflow-y-auto min-w-[160px]"
+                        style={{ top: `${dropdownPos.top}px`, left: `${dropdownPos.left}px`, zIndex: 9999 }}
                       >
                         {sources.map((source, index) => (
                           <Button
