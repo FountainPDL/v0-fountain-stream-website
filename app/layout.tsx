@@ -21,13 +21,20 @@ export const metadata: Metadata = {
   title: "FountainHome - Stream Movies, TV Shows & Anime",
   description: "Your ultimate streaming destination with a cyber fountain experience",
   generator: "v0.app",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+  },
   icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/icon.svg", sizes: "any", type: "image/svg+xml" },
-    ],
+    icon: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "any" }],
     shortcut: "/icon.svg",
-    apple: [{ url: "/icon.svg" }],
+    apple: [{ url: "/icon.svg", sizes: "180x180" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "FountainHome",
   },
 }
 
