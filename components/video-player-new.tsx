@@ -124,11 +124,12 @@ export function VideoPlayerNew({
               key={`${activeSource}-${retryCount}`}
               src={sources[activeSource]?.url}
               className="w-full h-full"
-              allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              allowFullScreen={true}
+              allow={"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"}
               title="Video Player"
               onLoad={handleIframeLoad}
               onError={handleIframeError}
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
             />
           </div>
 
