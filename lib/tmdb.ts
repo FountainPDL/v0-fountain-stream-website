@@ -1,6 +1,9 @@
-const TMDB_API_KEY = process.env.TMDB_API_KEY || "8baba8ab6b8bbe247645bcae7df63d0d"
 const TMDB_BASE_URL = "https://api.themoviedb.org/3"
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p"
+
+function getTMDBApiKey() {
+  return process.env.TMDB_API_KEY || "8baba8ab6b8bbe247645bcae7df63d0d"
+}
 
 export interface Movie {
   id: number
@@ -19,6 +22,7 @@ export interface Movie {
 }
 
 export async function fetchTMDB(endpoint: string) {
+  const TMDB_API_KEY = getTMDBApiKey()
   const url = `${TMDB_BASE_URL}${endpoint}${endpoint.includes("?") ? "&" : "?"}api_key=${TMDB_API_KEY}`
 
   const response = await fetch(url, {

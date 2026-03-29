@@ -45,16 +45,17 @@ export function HeroBanner({ movies }: HeroBannerProps) {
 
   return (
     <>
-      <div className="relative h-[50vh] w-full overflow-hidden">
+      <div className="relative h-[50vh] w-full overflow-hidden bg-background">
         {/* Background Image */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 opacity-100 transition-opacity duration-500">
           <Image
             key={movie.id}
             src={getImageUrl(movie.backdrop_path, "original") || "/placeholder.svg"}
             alt={title}
             fill
-            className="object-cover transition-opacity duration-700 ease-in-out"
+            className="object-cover"
             priority
+            quality={85}
           />
           {/* Gradient overlays */}
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />

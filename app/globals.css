@@ -178,6 +178,11 @@
     }
   }
 
+  /* Optimize transitions */
+  * {
+    @apply transition-colors duration-200;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 10px;

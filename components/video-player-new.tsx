@@ -79,17 +79,8 @@ export function VideoPlayerNew({
 
       // Open in new tab for user to download from the source
       window.open(downloadUrl, "_blank")
-
-      // Attempt to trigger download if possible
-      const a = document.createElement("a")
-      a.href = downloadUrl
-      a.download = `${title.replace(/[^a-z0-9]/gi, "_")}.mp4`
-      a.target = "_blank"
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
     } catch (error) {
-      console.error("[v0] Download failed:", error)
+      // Silently fail
     }
   }
 
