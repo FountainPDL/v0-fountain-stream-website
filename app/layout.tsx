@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Header } from "@/components/header"
+import { AdBlocker } from "@/components/ad-blocker"
+import { LoadingSpinner } from "@/components/loading-spinner"
 import { Suspense } from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
@@ -47,12 +49,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <Suspense fallback={<div>Loading...</div>}>
+          <AdBlocker />
+          <Suspense fallback={<LoadingSpinner />}>
             <Header />
           </Suspense>
           <main className="min-h-screen">{children}</main>
           <footer className="border-t border-border/50 bg-card/50 py-4 text-center">
-            <p className="text-sm text-muted-foreground">Made with 🙂 for movie lovers</p>
+            <p className="text-sm text-muted-foreground">Made with love for movie lovers</p>
           </footer>
           <Analytics />
         </ThemeProvider>
