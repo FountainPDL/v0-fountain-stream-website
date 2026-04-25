@@ -1,3 +1,4 @@
+import type { Viewport } from "next"
 import { notFound } from "next/navigation"
 import { Star, Calendar, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -15,6 +16,12 @@ import {
   getSimilarMovies,
   getSimilarTV,
 } from "@/lib/tmdb"
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 interface WatchPageProps {
   params: {

@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Header } from "@/components/header"
@@ -19,19 +19,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 })
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export const metadata: Metadata = {
   title: "FountainHome - Stream Movies, TV Shows & Anime",
   description: "Your ultimate streaming destination with a cyber fountain experience",
   generator: "v0.app",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "any" }],
-    shortcut: "/icon.svg",
-    apple: [{ url: "/icon.svg", sizes: "180x180" }],
+    icon: [{ url: "/fountain-icon.jpg", type: "image/jpeg", sizes: "any" }],
+    shortcut: "/fountain-icon.jpg",
+    apple: [{ url: "/fountain-icon.jpg", sizes: "180x180" }],
   },
   appleWebApp: {
     capable: true,
