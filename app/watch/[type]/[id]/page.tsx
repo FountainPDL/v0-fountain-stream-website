@@ -29,8 +29,8 @@ interface WatchPageProps {
 }
 
 export default async function WatchPage({ params, searchParams }: WatchPageProps) {
-  const { type, id } = params
-  const { season, episode } = searchParams
+  const { type, id } = await params
+  const { season, episode } = await searchParams
 
   if (type !== "movie" && type !== "tv") {
     notFound()
