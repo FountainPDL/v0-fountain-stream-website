@@ -1,6 +1,13 @@
+import type { Viewport } from "next"
 import { SettingsForm } from "@/components/settings-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SettingsIcon } from "lucide-react"
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 export default function SettingsPage() {
   return (

@@ -1,6 +1,13 @@
+import type { Viewport } from "next"
 import { searchContent } from "@/lib/tmdb"
 import { SearchResults } from "@/components/search-results"
 import { Search } from "lucide-react"
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 interface SearchPageProps {
   searchParams: { q?: string }

@@ -1,7 +1,14 @@
+import type { Viewport } from "next"
 import { HeroBanner } from "@/components/hero-banner"
 import { CategoryTabs } from "@/components/category-tabs"
 import { ContinueWatching } from "@/components/continue-watching"
 import { getPopular, getLatest, getMovies, getTVShows, getAnime, getPowerRangers } from "@/lib/tmdb"
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 export default async function HomePage() {
   let popular, latest, movies, tvShows, anime, powerRangers
@@ -17,7 +24,6 @@ export default async function HomePage() {
       getPowerRangers(),
     ])
   } catch (error) {
-    console.error("[v0] Failed to fetch TMDB data:", error)
     // Provide empty arrays as fallback
     popular = []
     latest = []
