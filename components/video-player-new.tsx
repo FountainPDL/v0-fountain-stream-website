@@ -4,8 +4,9 @@ import { useState, useRef, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ChevronDown, RefreshCw, Download } from "lucide-react"
+import { RefreshCw, Download } from "lucide-react"
 import { SubtitleSelector } from "@/components/subtitle-selector"
+import { getUserPreferences } from "@/lib/storage"
 
 interface VideoPlayerProps {
   sources: Array<{ url: string; type: string; label: string }>
@@ -33,23 +34,27 @@ export function VideoPlayerNew({
   nextEpisodeUrl,
 }: VideoPlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const dropdownButtonRef = useRef<HTMLButtonElement>(null)
   const [activeSource, setActiveSource] = useState(0)
-  const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false)
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
 
+  // Set default source from user preferences on mount
   useEffect(() => {
-    if (sourceDropdownOpen && dropdownButtonRef.current) {
-      const rect = dropdownButtonRef.current.getBoundingClientRect()
-      setDropdownPos({
-        top: rect.bottom + window.scrollY,
-        left: rect.left,
-      })
+    try {
+      const prefs = getUserPreferences()
+      const defaultServerLabel = prefs.defaultServer?.toLowerCase() || "vidsrc"
+      const defaultSourceIndex = sources.findIndex((source) =>
+        source.label.toLowerCase().includes(defaultServerLabel)
+      )
+      if (defaultSourceIndex !== -1) {
+        setActiveSource(defaultSourceIndex)
+      }
+    } catch (error) {
+      // Fallback to first source if preferences fail
+      setActiveSource(0)
     }
-  }, [sourceDropdownOpen])
+  }, [])
 
   useEffect(() => {
     if (error && retryCount < sources.length - 1) {
@@ -134,46 +139,25 @@ export function VideoPlayerNew({
 
           <div className="p-3 sm:p-4 border-t border-border/50 space-y-3">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-xs sm:text-sm font-medium">Source:</span>
-                <div className="flex-1 max-w-xs">
-                  <Button
-                    ref={dropdownButtonRef}
-                    size="sm"
-                    variant="outline"
-                    className="w-full text-xs sm:text-sm bg-transparent flex items-center justify-between gap-2 touch-manipulation"
-                    onClick={() => setSourceDropdownOpen(!sourceDropdownOpen)}
-                  >
-                    <span className="truncate">{sources[activeSource]?.label || "Select Source"}</span>
-                    <ChevronDown className="h-4 w-4 flex-shrink-0" />
-                  </Button>
-                  {sourceDropdownOpen && (
-                    <>
-                      <div className="fixed inset-0" style={{ zIndex: 9998 }} onClick={() => setSourceDropdownOpen(false)} />
-                      <div 
-                        className="fixed flex flex-col bg-background border border-border rounded-lg p-1 gap-1 shadow-2xl max-h-60 overflow-y-auto min-w-[160px]"
-                        style={{ top: `${dropdownPos.top}px`, left: `${dropdownPos.left}px`, zIndex: 9999 }}
-                      >
-                        {sources.map((source, index) => (
-                          <Button
-                            key={index}
-                            size="sm"
-                            variant={activeSource === index ? "default" : "ghost"}
-                            onClick={() => {
-                              setActiveSource(index)
-                              setSourceDropdownOpen(false)
-                              setRetryCount(0)
-                              setError(false)
-                              setIsLoading(true)
-                            }}
-                            className="text-xs justify-start touch-manipulation"
-                          >
-                            {source.label}
-                          </Button>
-                        ))}
-                      </div>
-                    </>
-                  )}
+              <div className="space-y-2 flex-1">
+                <span className="text-xs sm:text-sm font-medium block">Source:</span>
+                <div className="flex flex-wrap gap-2">
+                  {sources.map((source, index) => (
+                    <Button
+                      key={index}
+                      size="sm"
+                      variant={activeSource === index ? "default" : "outline"}
+                      onClick={() => {
+                        setActiveSource(index)
+                        setRetryCount(0)
+                        setError(false)
+                        setIsLoading(true)
+                      }}
+                      className="text-xs touch-manipulation"
+                    >
+                      {source.label}
+                    </Button>
+                  ))}
                 </div>
               </div>
               <Button

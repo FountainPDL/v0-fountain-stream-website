@@ -16,6 +16,8 @@ interface HeroBannerProps {
 export function HeroBanner({ movies }: HeroBannerProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showDetails, setShowDetails] = useState(false)
+  const [touchStart, setTouchStart] = useState(0)
+  const [touchEnd, setTouchEnd] = useState(0)
   const movie = movies[currentIndex]
 
   useEffect(() => {
@@ -25,6 +27,29 @@ export function HeroBanner({ movies }: HeroBannerProps) {
 
     return () => clearInterval(interval)
   }, [movies.length])
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setTouchEnd(e.changedTouches[0].clientX)
+    handleSwipe()
+  }
+
+  const handleSwipe = () => {
+    if (!touchStart || !touchEnd) return
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe) {
+      setCurrentIndex((prev) => (prev + 1) % movies.length)
+    }
+    if (isRightSwipe) {
+      setCurrentIndex((prev) => (prev - 1 + movies.length) % movies.length)
+    }
+  }
 
   if (!movie) return null
 
@@ -45,7 +70,11 @@ export function HeroBanner({ movies }: HeroBannerProps) {
 
   return (
     <>
-      <div className="relative h-[50vh] w-full overflow-hidden bg-background">
+      <div 
+        className="relative h-[50vh] w-full overflow-hidden bg-background"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Background Image */}
         <div className="absolute inset-0 opacity-100 transition-opacity duration-500">
           <Image
