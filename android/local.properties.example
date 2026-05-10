@@ -1,0 +1,15 @@
+# Android SDK Location
+# Update this path to your local Android SDK installation
+# macOS/Linux: $HOME/Library/Android/sdk or $HOME/Android/Sdk
+# Windows: C:\Users\YourUsername\AppData\Local\Android\Sdk
+
+sdk.dir=/path/to/android/sdk
+
+# Additional configuration
+ndk.dir=/path/to/android/ndk
+cmake.dir=/path/to/cmake
+
+# Build Options
+org.gradle.jvmargs=-Xmx4096m
+org.gradle.parallel=true
+org.gradle.caching=true

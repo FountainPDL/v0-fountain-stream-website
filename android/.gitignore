@@ -1,0 +1,36 @@
+# Gradle
+.gradle/
+build/
+*.apk
+*.aab
+.gradletasknamecache
+
+# Local configuration
+local.properties
+key.properties
+*.keystore
+*.jks
+
+# Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.externalNativeBuild
+.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Generated
+gen/
+.classpath
+.project
+
+# Sensitive
+secrets/
+signingConfigs/
+
