@@ -1,0 +1,21 @@
+# Release Signing Configuration
+# Copy this file to android/key.properties and fill in your actual values
+# DO NOT commit the actual key.properties file to version control
+
+# Path to the keystore file (relative to the android directory)
+store_file=app.keystore
+
+# Password for the keystore
+store_password=your_keystore_password
+
+# Alias for the key in the keystore
+key_alias=fountain_app_key
+
+# Password for the key
+key_password=your_key_password
+
+# Additional settings (optional)
+# validity_days=10000
+# organization="Fountain PDL"
+# organization_unit="Development"
+# country="US"

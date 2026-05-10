@@ -1,226 +1,349 @@
 # FountainHome Android APK Build Guide
 
-This document describes how to build and deploy the FountainHome streaming app as an Android APK using React Native, Capacitor, and Next.js.
+Complete guide for building, testing, and releasing the FountainHome Android application using React Native, Capacitor, and Java.
 
 ## Architecture
 
 The app uses a hybrid approach:
-- **Frontend**: Next.js (React) web application
-- **Native Bridge**: Capacitor for React to Android communication
-- **Native Code**: Java for Android-specific functionality
-- **Build System**: Gradle for APK compilation
+- **Frontend**: Next.js React web application
+- **Native Bridge**: Capacitor for web-to-Android communication
+- **Native Code**: Java modules for streaming, caching, and native features
+- **Build System**: Gradle with Kotlin DSL for compilation
+- **Platform**: Android 15 (API 35) with support back to Android 7 (API 24)
 
 ## Prerequisites
 
-### Local Development
-- Node.js 18+ and npm
-- Java Development Kit (JDK) 11+
-- Android SDK (API level 26+)
-- Android Build Tools 34.0.0+
-- Gradle 8.1.0+
+### Required Software
+- **Node.js 20+** - For building Next.js frontend
+- **pnpm 8+** - Package manager
+- **Java JDK 11+** - Temurin or OpenJDK recommended
+- **Android SDK** - API Level 35 (Android 15)
+- **Gradle 8.2+** - Build system
+- **Android Build Tools 35.0.0**
+- **Android NDK 26.1** (optional, for native code)
 
-### Environment Setup
+### Installation
+
+**macOS (Homebrew)**
 ```bash
-# Install Android SDK
-export ANDROID_SDK_ROOT=$HOME/Library/Android/sdk
-export ANDROID_HOME=$ANDROID_SDK_ROOT
-export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
-export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
+brew install openjdk@11
+brew install android-sdk
+export ANDROID_HOME=/usr/local/share/android-sdk
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+```
 
-# Or on Linux:
+**Ubuntu/Debian**
+```bash
+sudo apt-get install openjdk-11-jdk
+sudo apt-get install android-sdk
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 ```
 
-## Build Instructions
+**Windows**
+- Download Android Studio from https://developer.android.com/studio
+- Install through SDK Manager: API 35, Build Tools 35.0.0, NDK 26.1
 
-### 1. Build Web Assets
+## Project Structure
+
+```
+/vercel/share/v0-project/
+├── app/                           # Next.js web app
+├── android/                       # Android native project
+│   ├── app/
+│   │   ├── src/main/java/com/fountainstream/app/
+│   │   │   ├── MainActivity.java                # Entry point
+│   │   │   ├── StreamingModule.java             # Streaming logic
+│   │   │   ├── CacheManager.java                # Cache management
+│   │   │   ├── FountainWebViewClient.java       # WebView handler
+│   │   │   └── FountainWebChromeClient.java     # Media handling
+│   │   ├── src/main/res/values/
+│   │   │   ├── strings.xml
+│   │   │   ├── colors.xml
+│   │   │   └── themes.xml
+│   │   ├── src/main/AndroidManifest.xml
+│   │   ├── build.gradle.kts
+│   │   └── proguard-rules.pro
+│   ├── build.gradle.kts           # Project-level config
+│   ├── settings.gradle.kts        # Gradle settings
+│   ├── gradle.properties          # Build properties
+│   ├── local.properties           # SDK paths (local only)
+│   └── key.properties.example     # Signing template
+├── app-config.json                # App configuration
+├── capacitor.config.json          # Capacitor config
+├── .github/workflows/build-apk.yml # CI/CD automation
+└── ANDROID_BUILD.md               # This file
+```
+
+## Setup Instructions
+
+### 1. Environment Configuration
+
+Create `android/local.properties` with SDK paths:
+```properties
+sdk.dir=/path/to/android/sdk
+ndk.dir=/path/to/android/ndk
+java.home=/path/to/java
+```
+
+**Common Paths:**
+- **macOS:** `~/Library/Android/sdk`
+- **Ubuntu:** `~/Android/Sdk`
+- **Windows:** `C:\Users\YourUsername\AppData\Local\Android\sdk`
+
+### 2. Install Dependencies
+
 ```bash
-npm install --legacy-peer-deps
-npm run build
+cd /vercel/share/v0-project
+pnpm install --frozen-lockfile
 ```
 
-This generates the optimized Next.js build in the `out/` directory.
+### 3. Build Next.js Application
 
-### 2. Build Debug APK
 ```bash
-npm run build:android:debug
+pnpm run build
+pnpm run export
 ```
 
-The debug APK will be available at:
-```
-android/app/build/outputs/apk/debug/app-debug.apk
-```
+This generates static files in `out/` directory that embed in the APK.
 
-### 3. Build Release APK
+## Building APK
+
+### Debug APK (Testing)
+
 ```bash
-npm run build:android
+pnpm run build:android:debug
 ```
 
-The release APK will be available at:
+**Output:** `android/app/build/outputs/apk/debug/app-debug.apk`
+
+### Release APK (Production)
+
+**Step 1: Configure Signing**
+```bash
+cp android/key.properties.example android/key.properties
+# Edit android/key.properties with your credentials
 ```
-android/app/build/outputs/apk/release/app-release-unsigned.apk
+
+**Step 2: Generate Keystore (if needed)**
+```bash
+keytool -genkey -v -keystore android/release.keystore \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -alias fountain_key -storepass your_password -keypass your_password
 ```
 
-## Custom Java Modules
+**Step 3: Build Release APK**
+```bash
+pnpm run build:android
+```
 
-### StreamingUtils.java
-Located in `android/app/src/main/java/com/fountainpdl/stream/utils/StreamingUtils.java`
+**Output:** `android/app/build/outputs/apk/release/app-release.apk`
 
-Provides utilities for:
-- **Cache Management**: Store downloaded streaming content
-- **Storage Info**: Check available device storage
-- **Device Info**: Get device model and Android version
-- **Streaming Cache**: Dedicated directory for media files
+## Testing APK
+
+### Android Emulator
+
+```bash
+emulator -avd Pixel_API_35
+adb install android/app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -n com.fountainstream.app.debug/.MainActivity
+```
+
+### Physical Device
+
+```bash
+adb devices  # Verify connection
+adb install android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+## Java Modules Overview
+
+### StreamingModule.java
+Handles streaming-specific features:
+- Network quality monitoring (5 levels: offline to excellent)
+- Adaptive bitrate calculation based on network
+- Playback state management
+- Bandwidth optimization
+
+**Key Methods:**
+- `getNetworkQuality()` - Returns quality level 0-4
+- `getOptimalBitrate()` - Returns recommended bitrate in kbps
+- `onAppResume()` / `onAppPause()` - Lifecycle management
+
+### CacheManager.java
+Manages app caching strategy:
+- Local cache directory management
+- Cache size monitoring and cleanup
+- Storage space calculation
+- Automatic cleanup when threshold exceeded
+
+**Key Methods:**
+- `getCacheSizeInMB()` - Current cache size
+- `clearCache()` - Delete all cached data
+- `cleanupIfNeeded()` - Auto-cleanup at 400MB threshold
+- `getAvailableCacheSpace()` - Available device storage
 
 ### MainActivity.java
-The main Android activity that bridges Capacitor with native Android APIs.
+Entry point for hybrid app:
+- Initializes Capacitor bridge
+- Configures WebView for streaming
+- Manages resource lifecycle
+- Handles native module registration
 
-Initializes:
-1. Cache management system
-2. Storage permission handling
-3. Media player configuration
+### FountainWebViewClient.java
+Handles WebView page loading:
+- Page load events
+- Error handling with custom error pages
+- SSL certificate management
+- Resource loading optimization
+
+### FountainWebChromeClient.java
+Handles media and UI:
+- JavaScript console logging
+- Progress tracking
+- Fullscreen video handling
+- Window creation management
+
+## Gradle Configuration Details
+
+### build.gradle.kts (App Level)
+- **Namespace:** com.fountainstream.app
+- **Compilation SDK:** 35
+- **Min SDK:** 24
+- **Target SDK:** 35
+- **Java Version:** 11
+- **Build Types:** Debug + Release
+- **Code Obfuscation:** R8 with ProGuard rules
+- **Resource Shrinking:** Enabled in release
+
+### build.gradle.kts (Project Level)
+- Declares Android plugin versions
+- Configures shared build settings
+- Sets packaging options for all modules
+
+### gradle.properties
+- JVM heap allocation: 2048MB
+- Parallel builds enabled
+- Gradle build caching enabled
+- AndroidX enabled
+- R8 optimization enabled
+
+## Signing Configuration
+
+### Debug APK
+- Automatically signed with debug keystore
+- No password required
+- Debug-only suffix (.debug)
+
+### Release APK
+- Signed with release keystore
+- Configured via key.properties
+- Environment variable fallback for CI/CD
+- Shrinking and obfuscation enabled
+
+**For CI/CD environment variables:**
+```bash
+export ANDROID_STORE_PASSWORD="password"
+export ANDROID_KEY_ALIAS="fountain_app"
+export ANDROID_KEY_PASSWORD="password"
+```
 
 ## GitHub Actions CI/CD
 
-The `.github/workflows/build-apk.yml` workflow automatically:
-1. Checks out code
-2. Installs dependencies
-3. Builds Next.js application
-4. Compiles Android APK
-5. Uploads APK as artifact
-6. Creates release with APK on main branch
+Automated workflow (`.github/workflows/build-apk.yml`):
 
-### Triggering Builds
-- Push to `main` or `develop` branch
-- Pull requests to `main`
-- Manual workflow dispatch
+1. **Checkout** - Git clone
+2. **Setup** - Node.js 20, Java 17, Android SDK
+3. **Build Web** - Next.js compilation
+4. **Build APK** - Debug and release APK builds
+5. **Upload** - 30-day artifact retention
+6. **Release** - Optional GitHub release creation
 
-### Accessing Built APKs
-1. Go to GitHub Actions
-2. Select the completed workflow run
-3. Download the APK from "Artifacts" section
-
-## Gradle Configuration
-
-### Project Structure
-```
-android/
-├── app/
-│   ├── build.gradle.kts          # App module configuration
-│   ├── proguard-rules.pro        # Code obfuscation rules
-│   └── src/
-│       ├── main/
-│       │   ├── AndroidManifest.xml
-│       │   ├── java/com/fountainpdl/stream/
-│       │   │   ├── MainActivity.java
-│       │   │   └── utils/StreamingUtils.java
-│       │   └── res/
-│       │       ├── values/colors.xml
-│       │       ├── values/strings.xml
-│       │       └── values/themes.xml
-├── build.gradle.kts              # Project-level configuration
-└── settings.gradle.kts           # Project settings
-```
-
-### Key Gradle Settings
-- **Namespace**: `com.fountainpdl.stream`
-- **Target SDK**: 34 (Android 14)
-- **Min SDK**: 26 (Android 8)
-- **Java Version**: 11
-
-## Signing & Deployment
-
-### Debug APK
-Debug builds are automatically signed with the debug keystore.
-
-### Release APK
-For production releases, you need a signing key:
-
-```bash
-# Generate keystore (one time only)
-keytool -genkey -v -keystore my-release-key.keystore \
-  -keyalg RSA -keysize 2048 -validity 10000 \
-  -alias my-key-alias
-
-# Configure in android/app/build.gradle.kts
-signingConfigs {
-    release {
-        storeFile file("../my-release-key.keystore")
-        storePassword "your-keystore-password"
-        keyAlias "my-key-alias"
-        keyPassword "your-key-password"
-    }
-}
-```
-
-## Publishing to Google Play
-
-1. Create Google Play Developer account
-2. Set up app listing with screenshots and description
-3. Generate signed APK:
-   ```bash
-   npm run build:android
-   ```
-4. Upload APK to Google Play Console
-5. Configure release notes and rollout percentage
-6. Submit for review
+**Triggers:**
+- Push to main branch
+- Manual workflow_dispatch
 
 ## Troubleshooting
 
-### Build Fails with Gradle Error
+### Build Errors
+
+**SDK location not found**
 ```bash
-# Clean build
-cd android
-./gradlew clean
-./gradlew assembleRelease
+# Ensure local.properties exists with correct paths
+echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 ```
 
-### Out of Memory During Build
+**Gradle sync failed**
 ```bash
-# Increase Gradle heap
-export GRADLE_OPTS="-Xmx4096m"
-npm run build:android
+cd android && ./gradlew clean build && cd ..
 ```
 
-### Dependency Issues
+**Out of memory**
 ```bash
-# Update dependencies
-npm install --legacy-peer-deps --force
-cd android
-./gradlew dependencyUpdates
+# Edit android/gradle.properties
+org.gradle.jvmargs=-Xmx4096m
 ```
 
-### APK Not Found After Build
-Check build output:
+### Runtime Issues
+
+**White screen on launch**
 ```bash
-cd android
-./gradlew assembleRelease --info | grep -i "apk"
+# Clear cache
+adb shell pm clear com.fountainstream.app
+
+# Check WebView logs
+adb logcat com.fountainstream.app:V
 ```
 
-## Development Tips
+**Network errors**
+- Verify AndroidManifest.xml permissions
+- Check usesCleartextTraffic setting
+- Test domain accessibility
 
-1. **Hot Reload**: Use `npm run dev` for web development
-2. **Android Emulator**: Test with Android Studio emulator
-3. **Device Testing**: Connect physical Android device via USB
-4. **Logs**: View device logs with `adb logcat`
-5. **Profiling**: Use Android Studio Profiler for performance analysis
+## Publishing to Google Play Store
+
+1. Create Play Store Developer account ($25 one-time)
+2. Create app listing and fill metadata
+3. Upload signed release APK
+4. Test in internal/alpha tracks
+5. Promote to production
 
 ## Performance Optimization
 
-- **Code Obfuscation**: ProGuard rules in `proguard-rules.pro`
-- **Image Optimization**: Already configured in Next.js
-- **Caching**: StreamingUtils provides efficient cache management
-- **Bundle Size**: ~50-100 MB final APK size
+- **Code Obfuscation:** ProGuard rules reduce size 30-50%
+- **Resource Shrinking:** Remove unused resources
+- **Network Quality:** StreamingModule adapts bitrate
+- **Caching:** CacheManager enables offline support
+- **App Size:** ~50-80MB final APK (includes Next.js)
+
+## Advanced Features
+
+### Custom Network Quality Levels
+- Level 0: Offline
+- Level 1: Poor (500 kbps, 480p)
+- Level 2: Fair (1500 kbps, 720p)
+- Level 3: Good (3000 kbps, 1080p)
+- Level 4: Excellent (6000 kbps, 4K)
+
+### Cache Management
+- Automatic cleanup at 400MB threshold
+- Maximum cache size: 500MB
+- Per-app cache isolation
+- Configurable in CacheManager.java
 
 ## Resources
 
-- [Capacitor Documentation](https://capacitorjs.com/)
-- [Android Developer Guide](https://developer.android.com/)
-- [Gradle Documentation](https://gradle.org/)
-- [Next.js Static Export](https://nextjs.org/docs/pages/building-your-application/deploying/static-exports)
+- [Android Developer Docs](https://developer.android.com/docs)
+- [Capacitor Documentation](https://capacitorjs.com/docs)
+- [Gradle Build System](https://gradle.org/docs)
+- [Google Play Console](https://play.google.com/console)
+- [ProGuard Configuration](https://www.guardsquare.com/proguard)
 
 ---
 
-For questions or issues, refer to the project README or open an issue on GitHub.
+**Version:** 1.0.0  
+**Last Updated:** 2024  
+**Platform:** Android 7+ (API 24-35)  
+**Architecture:** ARM64, ARM32, x86, x86_64
