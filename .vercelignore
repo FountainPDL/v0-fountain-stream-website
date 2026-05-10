@@ -1,0 +1,5 @@
+android/
+.github/
+ANDROID_BUILD.md
+capacitor.config.json
+app-config.json
