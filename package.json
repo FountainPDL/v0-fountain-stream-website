@@ -3,14 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build && npm run export",
-    "export": "next export || mkdir -p out",
+    "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start",
-    "build:android": "npm run build && cd android && chmod +x gradlew && ./gradlew assembleRelease",
-    "build:android:debug": "npm run build && cd android && chmod +x gradlew && ./gradlew assembleDebug",
-    "android:sync": "npx @capacitor/cli sync android"
+    "start": "next start"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
